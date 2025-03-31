@@ -1,0 +1,38 @@
+services:
+  estoredb:
+    image: postgres:16.2
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=EStoreDb
+    restart: always
+    ports:
+        - "5432:5432"
+    volumes:
+      - postgres_estoreapi:/var/lib/postgresql/data/ 
+
+  estoreapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__Database=Server=estoredb;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres;Include Error Detail=true
+    ports:
+      - "7000:8080"
+      - "7070:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=nguyenvantien0620@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=1
+    ports:
+      - "5050:80"
+    depends_on:
+      - estoredb
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: always
