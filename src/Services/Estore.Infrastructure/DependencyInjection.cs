@@ -17,7 +17,10 @@ public static class DependencyInjection
         services.AddDbContext<EStoreDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            options.UseSqlServer(connectionString);
+            options.UseNpgsql(connectionString, assembly =>
+            {
+                assembly.MigrationsAssembly(typeof(EStoreDbContext).Assembly.FullName);
+            });
         });
         
         return services;

@@ -12,15 +12,15 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/Services/EStore.Api/EStore.Api.csproj", "src/Services/EStore.Api/"]
-COPY ["src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth/BuildingBlocks.Auth.csproj", "src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth/"]
-COPY ["src/BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "src/BuildingBlocks/BuildingBlocks/"]
-COPY ["src/Services/Estore.Application/Estore.Application.csproj", "src/Services/Estore.Application/"]
-COPY ["src/Services/Estore.Domain/EStore.Domain.csproj", "src/Services/Estore.Domain/"]
-COPY ["src/Services/Estore.Infrastructure/EStore.Infrastructure.csproj", "src/Services/Estore.Infrastructure/"]
-RUN dotnet restore "./src/Services/EStore.Api/EStore.Api.csproj"
+COPY ["Services/EStore/EStore.Api/EStore.Api.csproj", "Services/EStore/EStore.Api/"]
+COPY ["BuildingBlocks/BuildingBlocks.EStore/BuildingBlocks.EStore/BuildingBlocks.EStore.csproj", "BuildingBlocks/BuildingBlocks.EStore/BuildingBlocks.EStore/"]
+COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
+COPY ["Services/EStore/EStore.Application/EStore.Application.csproj", "Services/EStore/EStore.Application/"]
+COPY ["Services/EStore/EStore.Domain/EStore.Domain.csproj", "Services/EStore/EStore.Domain/"]
+COPY ["Services/EStore/EStore.Infrastructure/EStore.Infrastructure.csproj", "Services/EStore/EStore.Infrastructure/"]
+RUN dotnet restore "./Services/EStore/EStore.Api/EStore.Api.csproj"
 COPY . .
-WORKDIR "/src/src/Services/EStore.Api"
+WORKDIR "/src/Services/EStore/EStore.Api"
 RUN dotnet build "./EStore.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

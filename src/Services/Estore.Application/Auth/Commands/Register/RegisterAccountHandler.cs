@@ -4,9 +4,9 @@ using EStore.Domain.Models;
 
 namespace EStore.Application.Auth.Commands.Auth.Register;
 
-public class RegisterAccountHandler(IEStoreDbContext dbContext, UserManager<User> userManager) : ICommandHandler<RegisterAccountCommand, RegisterAccountResult>
+public class RegisterAccountHandler(IEStoreDbContext dbContext, UserManager<User> userManager) : ICommandHandler<RegisterAccountCommand, AppResponse<bool>>
 {
-    public async Task<RegisterAccountResult> Handle(RegisterAccountCommand command, CancellationToken cancellationToken)
+    public async Task<AppResponse<bool>> Handle(RegisterAccountCommand command, CancellationToken cancellationToken)
     {
         var newUser = new User
         {
@@ -21,8 +21,10 @@ public class RegisterAccountHandler(IEStoreDbContext dbContext, UserManager<User
         if (result.Succeeded)
         {
             newUser.Status = (int)AccountStatus.Active;
+            return AppResponse<bool>.Success(true);
         }
-        
-        return new RegisterAccountResult(result);
+
+        return AppResponse<bool>.Error(result.Errors.FirstOrDefault()?.Description ?? "");
+
     }
 }

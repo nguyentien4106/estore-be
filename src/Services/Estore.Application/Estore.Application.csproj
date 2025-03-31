@@ -7,13 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
-      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
-      <ProjectReference Include="..\EStore.Domain\EStore.Domain.csproj" />
+      <Compile Remove="EStore\**" />
+      <EmbeddedResource Remove="EStore\**" />
+      <None Remove="EStore\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="EStore\Queries\GetProfile\" />
+      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
+      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+      <ProjectReference Include="..\EStore.Domain\EStore.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>

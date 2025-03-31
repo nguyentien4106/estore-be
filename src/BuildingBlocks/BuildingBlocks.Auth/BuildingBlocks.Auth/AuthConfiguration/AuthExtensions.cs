@@ -1,11 +1,6 @@
-using System.Text;
-using BuildingBlocks.Auth.Models;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace BuildingBlocks.Auth.AuthConfiguration;
 
@@ -28,7 +23,17 @@ public static class EStoreExtensions
             opts.RequireHttpsMetadata = false;
             opts.TokenValidationParameters = Constants.Constants.GetTokenValidationParameters(jwtSettings);
         });
-        
+
+        services.AddCors(opts =>
+        {
+            opts.AddPolicy("web", policy =>
+            {
+                policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+            });
+        });
+
         services.AddAuthorization();
         services.AddSingleton(jwtSettings);
         
@@ -37,6 +42,7 @@ public static class EStoreExtensions
 
     public static IApplicationBuilder UseJwtServices(this IApplicationBuilder app)
     {
+        app.UseCors("web");
         app.UseAuthentication();
         app.UseAuthorization();
         

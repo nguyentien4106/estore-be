@@ -3,9 +3,7 @@ using FluentValidation;
 
 namespace EStore.Application.Auth.Commands.Auth.Register;
 
-public record RegisterAccountCommand(string FirstName, string LastName, string Email, string Password, string UserName, string PhoneNumber) : ICommand<RegisterAccountResult>;
-
-public record RegisterAccountResult(IdentityResult Result);
+public record RegisterAccountCommand(string FirstName, string LastName, string Email, string Password, string UserName, string PhoneNumber) : ICommand<AppResponse<bool>>;
 
 public class RegisterAccountCommandValidator : AbstractValidator<RegisterAccountCommand>
 {

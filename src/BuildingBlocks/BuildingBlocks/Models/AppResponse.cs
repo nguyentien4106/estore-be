@@ -35,4 +35,9 @@ public class AppResponse<T>
     {
         return new AppResponse<T>().SetError(message, data);
     }
+
+    public static AppResponse<T> NotFound(string name, object key, T data = default)
+    {
+        return new AppResponse<T>().SetError($"Entity \"{name}\" ({key}) was not found.", data);
+    }
 }

@@ -1,0 +1,9 @@
+services:
+  estoreapi:
+    image: ${DOCKER_REGISTRY-}estoreapi
+    build:
+      context: .
+      dockerfile: src/Services/EStore.Api/Dockerfile
+volumes:
+  postgres_estoreapi:
+  pgadmin_data:

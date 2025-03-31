@@ -7,7 +7,7 @@ public class GetProfile : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/EStore/profile/{userName}", async (IEStoreDbContext dbContext, string userName) =>
+        app.MapGet("/auth/profile/{userName}", async (IEStoreDbContext dbContext, string userName) =>
         {
             var user = dbContext.ApplicationUsers.FirstOrDefault(item => item.UserName == userName);
             return user?.UserName ?? "Profile";

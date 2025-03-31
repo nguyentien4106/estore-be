@@ -1,6 +1,6 @@
 namespace EStore.Domain.ValueObjects;
 
-public class EStoreToken
+public class AuthToken
 {
     public string AccessToken { get; set; }
     

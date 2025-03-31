@@ -1,6 +1,6 @@
 namespace EStore.Application.Auth.Commands.Auth.RefreshToken;
 
-public record RefreshTokenCommand(string AccessToken, string RefreshToken) : ICommand<AppResponse<EStoreToken>>;
+public record RefreshTokenCommand(string AccessToken, string RefreshToken) : ICommand<AppResponse<AuthToken>>;
 
 public class RefreshTokenValidator : AbstractValidator<RefreshTokenCommand>
 {

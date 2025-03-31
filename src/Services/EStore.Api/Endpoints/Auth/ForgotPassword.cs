@@ -8,7 +8,7 @@ public class ForgotPassword : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/EStore/forgot-password", async (string email, ISender sender) =>
+        app.MapPost("/auth/forgot-password", async (string email, ISender sender) =>
         {
             var command = new ForgotPasswordCommand(email);
             var result = await sender.Send(command);

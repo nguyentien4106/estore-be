@@ -5,7 +5,7 @@ using FluentValidation;
 
 namespace EStore.Application.Auth.Commands.Auth.Login;
 
-public record LoginCommand(string Email, string Password) : ICommand<AppResponse<EStoreToken>>;
+public record LoginCommand(string Email, string Password) : ICommand<AppResponse<AuthToken>>;
 
 public class LoginValidator : AbstractValidator<LoginCommand>
 {
