@@ -1,0 +1,11 @@
+{
+  "JwtSettings": {
+    "Issuer": "Issuer",
+    "Audience": "http://localhost:5173",
+    "SecretKey": "your_super_secret_key_which_should_be_long",
+    "Authority": "Authority",
+    "AccessTokenExpirationMinutes": 20,
+    "RefreshTokenExpirationDays": 7,
+    "RefreshTokenProvider": "Default"
+  }
+}
