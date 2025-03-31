@@ -8,6 +8,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 namespace EStore.Api;
 
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddHealthChecks();
         services.AddIdentityServices(configuration);
         services.AddJwtServices();
+        services.AddValidators();
 
         return services;
     }
@@ -55,6 +57,13 @@ public static class DependencyInjection
         return services;
     }
 
+    private static IServiceCollection AddValidators(this IServiceCollection services)
+    {
+        var assembly = typeof(Program).Assembly;
+        services.AddValidatorsFromAssembly(assembly);
+
+        return services;
+    }
     public static WebApplication UseEStoreApiServices(this WebApplication app)
     {
         app.UseJwtServices();

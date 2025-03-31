@@ -1,8 +1,3 @@
-using EStore.Domain.ValueObjects;
-using BuildingBlocks.CQRS;
-using BuildingBlocks.Models;
-using FluentValidation;
-
 namespace EStore.Application.Auth.Commands.Auth.Login;
 
 public record LoginCommand(string Email, string Password) : ICommand<AppResponse<AuthToken>>;

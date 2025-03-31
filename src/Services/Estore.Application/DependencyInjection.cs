@@ -5,6 +5,7 @@ using BuildingBlocks.Behaviors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
+using Estore.Application.Services;
 
 namespace EStore.Application;
 
@@ -19,13 +20,23 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
         
-        services.AddSingleton<IEmailSender<User>, EmailService>();
-        
         var sendGridSettings = configuration.GetSection("SendGridSettings").Get<SendGridSettings>() ?? throw new InvalidOperationException("SendGridSettings not found.");
         services.AddSingleton(sendGridSettings);
 
+        var cloudflareConfiguration = configuration.GetSection("CloudflareConfiguration").Get<CloudflareConfiguration>() ?? throw new InvalidOperationException("Cloudflare Configuration not found.");
+        services.AddSingleton(cloudflareConfiguration);
+
         services.AddFeatureManagement();
+        services.AddServices();
         
+        return services;
+    }
+
+    public static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IEmailSender<User>, EmailService>();
+        services.AddScoped<ICloudflareClient, CloudflareClient>();
+
         return services;
     }
 }
