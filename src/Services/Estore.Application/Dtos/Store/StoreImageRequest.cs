@@ -2,4 +2,4 @@
 
 namespace Estore.Application.Dtos.Store;
 
-public record StoreImageRequest(IFormFile File);
+public record StoreImageRequest(IFormFile File, string UserName);

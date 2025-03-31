@@ -1,26 +1,25 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
 using Estore.Application.Dtos.Store;
+using Estore.Application.Store.Commands.DeleteImage;
 using Estore.Application.Store.Commands.StoreImage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Store;
 
-public class UploadImage : ICarterModule
+public class DeleteImage : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/store/images", async ([FromForm] StoreImageRequest request, ISender sender) =>
+        app.MapDelete("/store/images", async (string fileName, ISender sender) =>
         {
-            var command = new StoreImageCommand(UserName: request.UserName, File: request.File);
+            var command = new DeleteImageCommand(fileName);
             var result = await sender.Send(command);
 
             return Results.Ok(result);
         })
-        .Accepts<IFormFile>("multipart/form-data")
-        .Produces<AppResponse<string>>(StatusCodes.Status201Created)
-        .WithName("UploadFile")
-        .WithTags("FileUpload")
-        .DisableAntiforgery();
+        .Produces<AppResponse<R2File>>(StatusCodes.Status201Created)
+        .WithName("DeleteImage")
+        .WithTags("DeleteImage");
     }
 }

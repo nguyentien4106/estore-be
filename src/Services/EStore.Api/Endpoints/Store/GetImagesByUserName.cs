@@ -1,27 +1,22 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Dtos.Store;
-using Estore.Application.Store.Commands;
-using Estore.Application.Store.Queries;
-using FluentValidation;
-using Mapster;
-using Microsoft.AspNetCore.Mvc;
+using Estore.Application.Store.Queries.GetImagesByUserName;
 
 namespace EStore.Api.Endpoints.Store;
 
-public class GetImageByFileName : ICarterModule
+public class GetImagesByUserName : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/store/images/{fileName}", async (string fileName, ISender sender) =>
+        app.MapGet("/store/images/users/{userName}", async (string userName, ISender sender) =>
         {
-            var command = new GetImageByFileNameQuery(fileName);
+            var command = new GetImagesByUserNameQuery(userName);
             var result = await sender.Send(command);
 
             return Results.Ok(result);
         })
-        .Produces<AppResponse<string>>(StatusCodes.Status200OK)
-        .WithName("GetImageByFileName")
-        .WithTags("GetImageByFileName");
+        .Produces<AppResponse<List<R2File>>>(StatusCodes.Status200OK)
+        .WithName("GetImagesByUserName")
+        .WithTags("GetImagesByUserName");
     }
 }

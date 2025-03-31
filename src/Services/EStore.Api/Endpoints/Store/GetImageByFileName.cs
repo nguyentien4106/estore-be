@@ -1,28 +1,22 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Dtos.Store;
-using Estore.Application.Store.Commands;
-using FluentValidation;
-using Mapster;
-using Microsoft.AspNetCore.Mvc;
+using Estore.Application.Store.Queries.GetImageByFileName;
 
 namespace EStore.Api.Endpoints.Store;
 
-public class UploadImage : ICarterModule
+public class GetImageByFileName : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/store/images", async ([FromForm] StoreImageRequest request, ISender sender) =>
+        app.MapGet("/store/images/{fileName}", async (string fileName, ISender sender) =>
         {
-            var command = new StoreImageCommand(request.File);
+            var command = new GetImageByFileNameQuery(fileName);
             var result = await sender.Send(command);
 
             return Results.Ok(result);
         })
-        .Accepts<IFormFile>("multipart/form-data")
-        .Produces<AppResponse<string>>(StatusCodes.Status201Created)
-        .WithName("UploadFile")
-        .WithTags("FileUpload")
-        .DisableAntiforgery();
+        .Produces<AppResponse<R2File>>(StatusCodes.Status200OK)
+        .WithName("GetImageByFileName")
+        .WithTags("GetImageByFileName");
     }
 }

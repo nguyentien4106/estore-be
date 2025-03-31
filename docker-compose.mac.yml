@@ -18,11 +18,11 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ConnectionStrings__Database=Server=estoredb;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres;Include Error Detail=true
     ports:
-      - "7000:8080"
-      - "7070:8081"
+      - "8000:8080"
+      - "8080:8081"
     volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - $HOME/.aspnet/https:/home/app/.aspnet/https:ro
+      - $HOME/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
 
   pgadmin:
     image: dpage/pgadmin4
