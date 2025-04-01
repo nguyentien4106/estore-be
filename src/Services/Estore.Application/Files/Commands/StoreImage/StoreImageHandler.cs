@@ -1,7 +1,7 @@
 ﻿using Estore.Application.Constants;
 using Estore.Application.Services;
 
-namespace Estore.Application.Store.Commands.StoreImage;
+namespace Estore.Application.Files.Commands.StoreImage;
 
 public class StoreImageHandler(ICloudflareClient client) : ICommandHandler<StoreImageCommand, AppResponse<R2File>>
 {

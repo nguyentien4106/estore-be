@@ -1,5 +1,5 @@
 ﻿
-namespace Estore.Application.Store.Commands.DeleteImage;
+namespace Estore.Application.Files.Commands.DeleteImage;
 public record DeleteImageCommand(string FileName) : ICommand<AppResponse<R2File>>;
 
 public class DeleteImageValidator : AbstractValidator<DeleteImageCommand>

@@ -1,7 +1,4 @@
-﻿using Estore.Application.Constants;
-using Microsoft.AspNetCore.Http;
-
-namespace Estore.Application.Store.Queries.GetImageByFileName;
+﻿namespace Estore.Application.Files.Queries.GetImageByFileName;
 
 public record GetImageByFileNameQuery(string FileName) : IQuery<AppResponse<R2File>>;
 

@@ -1,16 +1,16 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
 using Estore.Application.Dtos.Store;
-using Estore.Application.Store.Commands.StoreImage;
+using Estore.Application.Files.Commands.StoreImage;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EStore.Api.Endpoints.Store;
+namespace EStore.Api.Endpoints.Files;
 
-public class UploadImage : ICarterModule
+public class UploadFile : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/store/images", async ([FromForm] StoreImageRequest request, ISender sender) =>
+        app.MapPost("/store/files", async ([FromForm] StoreImageRequest request, ISender sender) =>
         {
             var command = new StoreImageCommand(UserName: request.UserName, File: request.File);
             var result = await sender.Send(command);
@@ -20,7 +20,7 @@ public class UploadImage : ICarterModule
         .Accepts<IFormFile>("multipart/form-data")
         .Produces<AppResponse<R2File>>(StatusCodes.Status201Created)
         .WithName("UploadFile")
-        .WithTags("FileUpload")
+        .WithTags("UploadFile")
         .DisableAntiforgery();
     }
 }

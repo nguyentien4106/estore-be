@@ -59,7 +59,10 @@ namespace Estore.Application.Services
         }
         private void OnUpdateReceived(object? sender, TdApi.Update update)
         {
-           
+            
+           if(update.DataType == "uploadFile")
+           {
+           }
         }
         private async Task AuthenticateAsync()
         {

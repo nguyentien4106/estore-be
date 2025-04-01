@@ -1,8 +1,6 @@
-﻿using Estore.Application.Constants;
-using Estore.Application.Services;
-using Microsoft.AspNetCore.Http;
+﻿using Estore.Application.Services;
 
-namespace Estore.Application.Store.Queries.GetImagesByUserName;
+namespace Estore.Application.Files.Queries.GetImagesByUserName;
 
 public class GetImagesByUserNameHandler(ICloudflareClient client) : IQueryHandler<GetImagesByUserNameQuery, AppResponse<List<R2File>>>
 {

@@ -1,7 +1,7 @@
 ﻿using Estore.Application.Constants;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Store.Commands.StoreImage;
+namespace Estore.Application.Files.Commands.StoreImage;
 
 public record StoreImageCommand(IFormFile File, string UserName) : ICommand<AppResponse<R2File>>;
 

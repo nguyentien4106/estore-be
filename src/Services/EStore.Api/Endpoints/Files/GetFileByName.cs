@@ -1,14 +1,14 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Store.Queries.GetImageByFileName;
+using Estore.Application.Files.Queries.GetImageByFileName;
 
-namespace EStore.Api.Endpoints.Store;
+namespace EStore.Api.Endpoints.Files;
 
-public class GetImageByFileName : ICarterModule
+public class GetFileByName : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/store/images/{fileName}", async (string fileName, ISender sender) =>
+        app.MapGet("/store/files/{fileName}", async (string fileName, ISender sender) =>
         {
             var command = new GetImageByFileNameQuery(fileName);
             var result = await sender.Send(command);
@@ -16,7 +16,7 @@ public class GetImageByFileName : ICarterModule
             return Results.Ok(result);
         })
         .Produces<AppResponse<R2File>>(StatusCodes.Status200OK)
-        .WithName("GetImageByFileName")
-        .WithTags("GetImageByFileName");
+        .WithName("GetFileByName")
+        .WithTags("GetFileByName");
     }
 }
