@@ -6,10 +6,11 @@ namespace EStore.Domain.Models;
 public class User : IdentityUser, IEntity
 {
     public string FirstName { get; set; } = default!;
-    
     public string LastName { get; set; } = default!;
-    
     public int Status { get; set; }
+    public string? RefreshToken { get; set; }
+    
+    public DateTime? RefreshTokenExpiry { get; set; }
     
     public DateTime? CreatedAt { get; set; } = DateTime.Now;
     

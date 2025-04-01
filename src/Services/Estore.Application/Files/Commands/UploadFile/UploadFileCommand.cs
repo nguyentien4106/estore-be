@@ -1,13 +1,13 @@
 ﻿using Estore.Application.Constants;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Files.Commands.StoreImage;
+namespace Estore.Application.Files.Commands.UploadFile;
 
-public record StoreImageCommand(IFormFile File, string UserName) : ICommand<AppResponse<R2File>>;
+public record UploadFileCommand(IFormFile File, string UserName) : ICommand<AppResponse<R2File>>;
 
-public class StoreImageValidator : AbstractValidator<StoreImageCommand>
+public class UploadFileValidator : AbstractValidator<UploadFileCommand>
 {
-    public StoreImageValidator()
+    public UploadFileValidator()
     {
         RuleFor(x => x.File)
                     .NotNull().WithMessage("File is required.")

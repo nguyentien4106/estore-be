@@ -2,7 +2,6 @@
 using Carter;
 using Estore.Application.Dtos.Store;
 using Estore.Application.Services;
-using Estore.Application.Files.Commands.StoreImage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files;

@@ -28,5 +28,5 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
         optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres");
     }
 
-    public DbSet<User> ApplicationUsers => Users ;
+    public DbSet<User> Users => Users ;
 }

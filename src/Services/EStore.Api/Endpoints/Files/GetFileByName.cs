@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Files.Queries.GetImageByFileName;
+using Estore.Application.Files.Queries.GetFileByName;
 
 namespace EStore.Api.Endpoints.Files;
 
@@ -10,7 +10,7 @@ public class GetFileByName : ICarterModule
     {
         app.MapGet("/store/files/{fileName}", async (string fileName, ISender sender) =>
         {
-            var command = new GetImageByFileNameQuery(fileName);
+            var command = new GetFileByNameQuery(fileName);
             var result = await sender.Send(command);
 
             return Results.Ok(result);

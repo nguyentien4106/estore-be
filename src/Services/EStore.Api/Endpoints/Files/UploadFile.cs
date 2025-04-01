@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
 using Estore.Application.Dtos.Store;
-using Estore.Application.Files.Commands.StoreImage;
+using Estore.Application.Files.Commands.UploadFile;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files;
@@ -12,7 +12,7 @@ public class UploadFile : ICarterModule
     {
         app.MapPost("/store/files", async ([FromForm] StoreImageRequest request, ISender sender) =>
         {
-            var command = new StoreImageCommand(UserName: request.UserName, File: request.File);
+            var command = new UploadFileCommand(UserName: request.UserName, File: request.File);
             var result = await sender.Send(command);
 
             return Results.Ok(result);

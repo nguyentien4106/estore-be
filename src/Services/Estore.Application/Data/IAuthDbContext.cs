@@ -6,7 +6,7 @@ namespace EStore.Application.Data;
 
 public interface IEStoreDbContext
 {
-    public DbSet<User> ApplicationUsers { get; }
+    public DbSet<User> Users { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

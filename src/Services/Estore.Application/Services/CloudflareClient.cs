@@ -30,7 +30,7 @@ public class CloudflareClient : ICloudflareClient
         _bucketName = cloudflareConfiguration.BucketName;
     }
 
-    public async Task<AppResponse<R2File>> UploadImageAsync(string fileName, Stream fileStream, string contentType)
+    public async Task<AppResponse<R2File>> UploadFileAsync(string fileName, Stream fileStream, string contentType)
     {
         var putRequest = new PutObjectRequest
         {
@@ -56,7 +56,7 @@ public class CloudflareClient : ICloudflareClient
     }
 
     // 📌 Delete Image from Cloudflare R2
-    public async Task<AppResponse<R2File>> DeleteImageAsync(string fileName)
+    public async Task<AppResponse<R2File>> DeleteFileAsync(string fileName)
     {
         var deleteRequest = new DeleteObjectRequest
         {
@@ -74,13 +74,13 @@ public class CloudflareClient : ICloudflareClient
     }
 
     // 📌 Get Image Public URL
-    public async Task<AppResponse<R2File>> GetImageUrlAsync(string fileName)
+    public async Task<AppResponse<R2File>> GetFileByNameAsync(string fileName)
     {
         var url = await GeneratePresignedUrl(fileName);
         return AppResponse<R2File>.Success(new () { Url = url, FileName = fileName });
     }
 
-    public async Task<AppResponse<List<R2File>>> GetImagesByUserNameAsync(string userName)
+    public async Task<AppResponse<List<R2File>>> GetFilesByUserNameAsync(string userName)
     {
         var listRequest = new ListObjectsV2Request
         {

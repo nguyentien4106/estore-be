@@ -42,10 +42,7 @@ public static class TokenUtils
     public static async Task<string> GenerateRefreshToken(UserManager<User> userManager, JwtSettings jwtSettings, User user)
     {
         const string refreshTokenKey = "RefreshToken";
-        await userManager.RemoveAuthenticationTokenAsync(user, jwtSettings.RefreshTokenProvider, refreshTokenKey);
         var refreshToken = await userManager.GenerateUserTokenAsync(user, jwtSettings.RefreshTokenProvider, refreshTokenKey);
-        await userManager.SetAuthenticationTokenAsync(user, jwtSettings.RefreshTokenProvider, refreshTokenKey, refreshToken);
-        
         return refreshToken;
     }
     
@@ -67,4 +64,5 @@ public static class TokenUtils
 
         return principal;
     }
+
 }

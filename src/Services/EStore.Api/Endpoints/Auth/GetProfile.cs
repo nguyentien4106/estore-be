@@ -9,7 +9,7 @@ public class GetProfile : ICarterModule
     {
         app.MapGet("/auth/profile/{userName}", async (IEStoreDbContext dbContext, string userName) =>
         {
-            var user = dbContext.ApplicationUsers.FirstOrDefault(item => item.UserName == userName);
+            var user = dbContext.Users.FirstOrDefault(item => item.UserName == userName);
             return user?.UserName ?? "Profile";
         })
         .WithName("GetProfile")
