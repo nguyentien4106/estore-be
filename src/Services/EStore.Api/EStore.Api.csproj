@@ -8,6 +8,7 @@
         <UserSecretsId>ac5cfe93-bfba-45de-8988-8127993f4ae4</UserSecretsId>
         <DockerfileContext>..\..\..</DockerfileContext>
         <DockerComposeProjectPath>..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>

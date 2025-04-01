@@ -26,6 +26,9 @@ public static class DependencyInjection
         var cloudflareConfiguration = configuration.GetSection("CloudflareConfiguration").Get<CloudflareConfiguration>() ?? throw new InvalidOperationException("Cloudflare Configuration not found.");
         services.AddSingleton(cloudflareConfiguration);
 
+        var telegramConfiguration = configuration.GetSection("TelegramConfiguration").Get<TelegramConfiguration>() ?? throw new InvalidOperationException("Cloudflare Configuration not found.");
+        services.AddSingleton(telegramConfiguration);
+
         services.AddFeatureManagement();
         services.AddServices();
         
@@ -36,6 +39,7 @@ public static class DependencyInjection
     {
         services.AddSingleton<IEmailSender<User>, EmailService>();
         services.AddScoped<ICloudflareClient, CloudflareClient>();
+        services.AddSingleton<ITelegramService, TelegramService>();
 
         return services;
     }

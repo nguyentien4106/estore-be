@@ -15,9 +15,9 @@ public static class DatabaseExtensions
 
         var context = scope.ServiceProvider.GetRequiredService<EStoreDbContext>();
 
-        context.Database.MigrateAsync().GetAwaiter().GetResult();
+        //context.Database.MigrateAsync().GetAwaiter().GetResult();
 
-        await SeedAsync(context);
+        //await SeedAsync(context);
 
     }
 
