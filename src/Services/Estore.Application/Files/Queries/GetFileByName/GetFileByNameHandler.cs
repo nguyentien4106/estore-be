@@ -1,11 +1,22 @@
-﻿using Estore.Application.Services;
-
+﻿using Estore.Application.Dtos.Files;
+using EStore.Application.Data;
+using Microsoft.EntityFrameworkCore;
+using Mapster;
 namespace Estore.Application.Files.Queries.GetFileByName;
 
-public class GetFileByNameHandler(ICloudflareClient client) : IQueryHandler<GetFileByNameQuery, AppResponse<R2File>>
+public class GetFileByNameHandler(IEStoreDbContext context) : IQueryHandler<GetFileByNameQuery, AppResponse<FileInformationDto>>
 {
-    public async Task<AppResponse<R2File>> Handle(GetFileByNameQuery query, CancellationToken cancellationToken)
+    public async Task<AppResponse<FileInformationDto>> Handle(GetFileByNameQuery query, CancellationToken cancellationToken)
     {
-        return await client.GetFileByNameAsync(query.FileName);
+        var file = await context.Files.FirstOrDefaultAsync(item => item.FileName == query.FileName);
+
+        if(file is null)
+        {
+            return AppResponse<FileInformationDto>.NotFound("File", query.FileName);
+        }
+
+        var dto = file.Adapt<FileInformationDto>();
+
+        return AppResponse<FileInformationDto>.Success(dto);
     }
 }

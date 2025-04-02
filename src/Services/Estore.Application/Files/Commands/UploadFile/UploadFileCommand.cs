@@ -1,9 +1,10 @@
 ﻿using Estore.Application.Constants;
+using Estore.Application.Dtos.Files;
 using Microsoft.AspNetCore.Http;
 
 namespace Estore.Application.Files.Commands.UploadFile;
 
-public record UploadFileCommand(IFormFile File, string UserName) : ICommand<AppResponse<R2File>>;
+public record UploadFileCommand(IFormFile File, string UserName) : ICommand<AppResponse<FileInformationDto>>;
 
 public class UploadFileValidator : AbstractValidator<UploadFileCommand>
 {

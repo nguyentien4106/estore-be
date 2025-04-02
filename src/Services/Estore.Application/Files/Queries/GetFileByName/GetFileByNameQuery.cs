@@ -1,6 +1,8 @@
-﻿namespace Estore.Application.Files.Queries.GetFileByName;
+﻿using Estore.Application.Dtos.Files;
 
-public record GetFileByNameQuery(string FileName) : IQuery<AppResponse<R2File>>;
+namespace Estore.Application.Files.Queries.GetFileByName;
+
+public record GetFileByNameQuery(string FileName) : IQuery<AppResponse<FileInformationDto>>;
 
 public class GetFileByNameQueryValidator : AbstractValidator<GetFileByNameQuery>
 {

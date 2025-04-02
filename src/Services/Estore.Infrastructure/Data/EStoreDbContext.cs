@@ -13,9 +13,11 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     {
     }
 
-    public EStoreDbContext(DbContextOptions<EStoreDbContext> options, IConfiguration configuration) : base(options)
+    public EStoreDbContext(DbContextOptions<EStoreDbContext> options) : base(options)
     {
     }
+
+    public DbSet<FileInformation> FileInformations { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -29,6 +31,8 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     }
 
     public new DbSet<User> Users => base.Users;
+
+    public DbSet<FileInformation> Files => FileInformations;
 
     public Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {

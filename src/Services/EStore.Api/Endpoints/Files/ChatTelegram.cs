@@ -9,7 +9,7 @@ public class ChatTelegram : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/store/telegram", async ([FromServices]ITelegramService services , ISender sender) =>
+        app.MapGet("/telegram", async ([FromServices]ITelegramService services , ISender sender) =>
         {
             var result = await services.GetChatIdAsync();
 

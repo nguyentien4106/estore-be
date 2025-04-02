@@ -60,12 +60,7 @@ namespace Estore.Application.Services
 
         private void OnUpdateReceived(object? sender, Update update)
         {
-            var fileUpdate = (Update.UpdateFile)update;
-
-            if(fileUpdate?.File?.Local?.Path != null)
-            {
-                Console.WriteLine($"File downloaded to: {fileUpdate.File.Local.Path}");
-            }
+           
         }
 
         private async Task AuthenticateAsync()

@@ -1,5 +1,4 @@
 using EStore.Domain.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EStore.Application.Data;
@@ -7,6 +6,8 @@ namespace EStore.Application.Data;
 public interface IEStoreDbContext
 {
     public DbSet<User> Users { get; }
-    
+
+    public DbSet<FileInformation> Files { get; }
+
     Task<int> CommitAsync(CancellationToken cancellationToken = default);
 }

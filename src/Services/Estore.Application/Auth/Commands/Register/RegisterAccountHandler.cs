@@ -1,5 +1,5 @@
 using EStore.Application.Data;
-using EStore.Application.Enums;
+using EStore.Domain.Enums;
 using EStore.Domain.Models;
 
 namespace EStore.Application.Auth.Commands.Auth.Register;
