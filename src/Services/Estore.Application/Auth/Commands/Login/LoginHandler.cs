@@ -1,11 +1,16 @@
-using System.Security.Claims;
 using EStore.Application.Helpers;
 using EStore.Domain.Models;
 using BuildingBlocks.Auth.Models;
+using EStore.Application.Data;
 
 namespace EStore.Application.Auth.Commands.Auth.Login;
 
-public class LoginHandler(SignInManager<User> signInManager, UserManager<User> userManager, JwtSettings jwtSettings) : ICommandHandler<LoginCommand, AppResponse<AuthToken>>
+public class LoginHandler(
+    SignInManager<User> signInManager, 
+    UserManager<User> userManager, 
+    JwtSettings jwtSettings, 
+    IEStoreDbContext context
+) : ICommandHandler<LoginCommand, AppResponse<AuthToken>>
 {
     public async Task<AppResponse<AuthToken>> Handle(LoginCommand command, CancellationToken cancellationToken)
     {
@@ -17,10 +22,10 @@ public class LoginHandler(SignInManager<User> signInManager, UserManager<User> u
         }
         
         var result = await signInManager.PasswordSignInAsync(user, command.Password, true, true);
+
         if (result.Succeeded)
         {
-            var token = await GenerateUserToken(user);
-            return AppResponse<AuthToken>.Success(token);
+            return AppResponse<AuthToken>.Success(await GenerateUserToken(user));
         }
 
         if (result.IsLockedOut) 
@@ -45,7 +50,7 @@ public class LoginHandler(SignInManager<User> signInManager, UserManager<User> u
     {
        
         var accessToken = await TokenUtils.GenerateAccessToken(userManager, jwtSettings, user);
-        var refreshToken =  await TokenUtils.GenerateRefreshToken(userManager, jwtSettings, user);
+        var refreshToken =  await TokenUtils.GenerateRefreshToken(jwtSettings, user, context);
         
         return new AuthToken
         {

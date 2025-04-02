@@ -13,7 +13,6 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("Database");
 
-        services.AddScoped<IEStoreDbContext, EStoreDbContext>();
         services.AddDbContext<EStoreDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
@@ -22,7 +21,10 @@ public static class DependencyInjection
                 assembly.MigrationsAssembly(typeof(EStoreDbContext).Assembly.FullName);
             });
         });
-        
+
+        services.AddScoped<IEStoreDbContext>(provider => provider.GetRequiredService<EStoreDbContext>());
+
+
         return services;
     }
 }

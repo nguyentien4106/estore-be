@@ -3,8 +3,10 @@ using System.Security.Claims;
 using System.Text;
 using EStore.Domain.Models;
 using BuildingBlocks.Auth.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using EStore.Application.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace EStore.Application.Helpers;
 
@@ -32,37 +34,40 @@ public static class TokenUtils
             issuer: appSettings.Issuer,
             audience: appSettings.Audience,
             claims: userClaims,
-            expires: DateTime.UtcNow.AddSeconds(appSettings.AccessTokenExpirationMinutes),
+            expires: DateTime.Now.AddMinutes(appSettings.AccessTokenExpirationMinutes),
             signingCredentials: signInCredentials
         );
         
         return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
     }
 
-    public static async Task<string> GenerateRefreshToken(UserManager<User> userManager, JwtSettings jwtSettings, User user)
+    public static async Task<string> GenerateRefreshToken(JwtSettings jwtSettings, User user, IEStoreDbContext context)
     {
-        const string refreshTokenKey = "RefreshToken";
-        var refreshToken = await userManager.GenerateUserTokenAsync(user, jwtSettings.RefreshTokenProvider, refreshTokenKey);
+        var refreshToken = GenerateRefreshToken();
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = DateTime.Now.AddDays(jwtSettings.RefreshTokenExpirationDays);
+        await context.CommitAsync();
+
         return refreshToken;
     }
-    
-    public static ClaimsPrincipal GetPrincipalFromExpiredToken(JwtSettings appSettings, string token)
+
+    private static string GenerateRefreshToken(int size = 64)
     {
-        var tokenValidationParameters = new TokenValidationParameters
+        var randomNumber = new byte[size];
+        using (var rng = RandomNumberGenerator.Create())
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidAudience = appSettings.Audience,
-            ValidIssuer = appSettings.Issuer,
-            ValidateLifetime = false,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettings.SecretKey))
-        };
-
-        var principal = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-        if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            throw new SecurityTokenException("GetPrincipalFromExpiredToken Token is not validated");
-
-        return principal;
+            rng.GetBytes(randomNumber);
+        }
+        return Convert.ToBase64String(randomNumber);
     }
 
+    public static async Task<User?> GetUserFromRefreshToken(IEStoreDbContext context, string refreshToken)
+    {
+        return await context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+    }
+
+    public static bool IsRefreshTokenValid(DateTime? refreshTokenExpiry)
+    {
+        return refreshTokenExpiry >= DateTime.Now;
+    }
 }

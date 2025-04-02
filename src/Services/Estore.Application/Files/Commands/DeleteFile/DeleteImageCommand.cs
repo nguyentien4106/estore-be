@@ -1,5 +1,5 @@
-﻿
-namespace Estore.Application.Files.Commands.DeleteFile;
+﻿namespace Estore.Application.Files.Commands.DeleteFile;
+
 public record DeleteFileCommand(string FileName) : ICommand<AppResponse<R2File>>;
 
 public class DeleteFileValidator : AbstractValidator<DeleteFileCommand>

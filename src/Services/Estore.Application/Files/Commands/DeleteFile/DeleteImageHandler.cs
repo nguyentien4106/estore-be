@@ -1,6 +1,4 @@
-﻿using Estore.Application.Constants;
-using Estore.Application.Services;
-using Estore.Application.Files.Commands.DeleteFile;
+﻿using Estore.Application.Services;
 
 namespace Estore.Application.Files.Commands.DeleteFile;
 

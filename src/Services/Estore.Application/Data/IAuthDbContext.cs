@@ -8,5 +8,5 @@ public interface IEStoreDbContext
 {
     public DbSet<User> Users { get; }
     
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<int> CommitAsync(CancellationToken cancellationToken = default);
 }

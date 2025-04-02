@@ -12,6 +12,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.FirstName).IsRequired().HasMaxLength(30);
         builder.Property(x => x.LastName).IsRequired().HasMaxLength(30);
         builder.Property(x => x.UserName).IsRequired().HasMaxLength(20);
-        builder.Property(x => x.RefreshToken).HasMaxLength(44);
+        builder.Property(x => x.RefreshToken).HasMaxLength(100);
     }
 }

@@ -1,29 +1,33 @@
 using EStore.Application.Helpers;
 using EStore.Domain.Models;
-using BuildingBlocks.Auth.Constants;
 using BuildingBlocks.Auth.Models;
 using EStore.Application.Data;
 
 namespace EStore.Application.Auth.Commands.Auth.RefreshToken;
 
-public class RefreshTokenHandler(JwtSettings jwtSettings, UserManager<User> userManager, IEStoreDbContext context) : ICommandHandler<RefreshTokenCommand, AppResponse<AuthToken>>
+public class RefreshTokenHandler(
+    JwtSettings jwtSettings, 
+    UserManager<User> userManager, 
+    IEStoreDbContext context
+) : ICommandHandler<RefreshTokenCommand, AppResponse<AuthToken>>
 {
     public async Task<AppResponse<AuthToken>> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
     {
-        // Validate and decode the refresh token
-        
-        var validationResult = await TokenUtils.Ge(userManager, jwtSettings, command.RefreshToken);
-        if (!validationResult.IsValid)
+        var user = await TokenUtils.GetUserFromRefreshToken(context, command.RefreshToken);
+        if(user is null)
         {
-            return AppResponse<AuthToken>.Error("Invalid or expired refresh token");
+            return AppResponse<AuthToken>.Error("User Not Found.");
         }
 
-        var user = validationResult.User;
-        
+        if (!TokenUtils.IsRefreshTokenValid(user.RefreshTokenExpiry))
+        {
+            return AppResponse<AuthToken>.Error("Your session has expiry");
+        }
+
         // Generate new tokens
         return AppResponse<AuthToken>.Success(new()
         {
-            RefreshToken = await TokenUtils.GenerateRefreshToken(userManager, jwtSettings, user),
+            RefreshToken = await TokenUtils.GenerateRefreshToken(jwtSettings, user, context),
             AccessToken = await TokenUtils.GenerateAccessToken(userManager, jwtSettings, user)
         });
     }

@@ -28,5 +28,10 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
         optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres");
     }
 
-    public DbSet<User> Users => Users ;
+    public new DbSet<User> Users => base.Users;
+
+    public Task<int> CommitAsync(CancellationToken cancellationToken = default)
+    {
+        return base.SaveChangesAsync(cancellationToken);
+    }
 }

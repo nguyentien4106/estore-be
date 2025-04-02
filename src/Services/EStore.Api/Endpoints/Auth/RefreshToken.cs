@@ -1,6 +1,7 @@
 using EStore.Application.Auth.Commands.Auth.RefreshToken;
 using BuildingBlocks.Models;
 using Carter;
+using Microsoft.AspNetCore.Mvc;
 using Mapster;
 
 namespace EStore.Api.Endpoints;
@@ -9,9 +10,9 @@ public class RefreshToken : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/auth/refresh-token", async (string refreshToken, ISender sender) =>
+        app.MapPost("/auth/refresh-token", async (RefreshTokenRequest request, ISender sender) =>
         {
-            var command = new RefreshTokenCommand(refreshToken);
+            var command = request.Adapt<RefreshTokenCommand>();
             var result = await sender.Send(command);
 
             return Results.Ok(result);

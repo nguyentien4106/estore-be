@@ -57,13 +57,17 @@ namespace Estore.Application.Services
                 throw;
             }
         }
-        private void OnUpdateReceived(object? sender, TdApi.Update update)
+
+        private void OnUpdateReceived(object? sender, Update update)
         {
-            
-           if(update.DataType == "uploadFile")
-           {
-           }
+            var fileUpdate = (Update.UpdateFile)update;
+
+            if(fileUpdate?.File?.Local?.Path != null)
+            {
+                Console.WriteLine($"File downloaded to: {fileUpdate.File.Local.Path}");
+            }
         }
+
         private async Task AuthenticateAsync()
         {
             try
