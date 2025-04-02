@@ -15,7 +15,7 @@ public class GetFilesByUserName : ICarterModule
 
             return Results.Ok(result);
         })
-        .Produces<AppResponse<List<R2File>>>(StatusCodes.Status200OK)
+        .Produces<AppResponse<List<FileInformationDto>>>(StatusCodes.Status200OK)
         .WithName("GetFilesByUserName")
         .WithTags("GetFilesByUserName");
     }

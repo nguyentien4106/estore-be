@@ -1,11 +1,19 @@
-﻿using Estore.Application.Services;
-
+﻿
 namespace Estore.Application.Files.Queries.GetFilesByUserName;
 
-public class GetFilesByUserNameHandler(ICloudflareClient client) : IQueryHandler<GetFilesByUserNameQuery, AppResponse<List<R2File>>>
+public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<User> userManager) : IQueryHandler<GetFilesByUserNameQuery, AppResponse<List<FileInformationDto>>>
 {
-    public async Task<AppResponse<List<R2File>>> Handle(GetFilesByUserNameQuery query, CancellationToken cancellationToken)
+    public async Task<AppResponse<List<FileInformationDto>>> Handle(GetFilesByUserNameQuery query, CancellationToken cancellationToken)
     {
-        return await client.GetFilesByUserNameAsync(query.UserName);
+        var user = await userManager.FindByNameAsync(query.UserName);
+
+        if(user is null)
+        {
+            return AppResponse<List<FileInformationDto>>.NotFound("User", query.UserName);
+        }
+
+        var files = await context.Files.Where(x => x.UserId == Guid.Parse(user.Id)).ToListAsync(cancellationToken);
+
+        return AppResponse<List<FileInformationDto>>.Success(files.Adapt<List<FileInformationDto>>());
     }
 }

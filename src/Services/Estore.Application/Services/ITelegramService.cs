@@ -5,9 +5,15 @@ namespace Estore.Application.Services;
 
 public interface ITelegramService
 {
-    Task SendFileToChannelAsync(string filePath, string caption = null);
-
     Task<long> GetChatIdAsync();
 
-    Task SendFormFileToChannelAsync(IFormFile file, string caption = null);
+    Task<AppResponse<long>> UploadFileToStrorageAsync(IFormFile file, string caption = null);
+
+    /// <summary>
+    /// Deletes a message from a Telegram channel
+    /// </summary>
+    /// <param name="messageId">The ID of the message to delete</param>
+    /// <param name="revoke">Whether to delete the message for all users</param>
+    /// <returns>A task representing the asynchronous operation</returns>
+    Task<AppResponse<bool>> DeleteMessageAsync(long messageId);
 }

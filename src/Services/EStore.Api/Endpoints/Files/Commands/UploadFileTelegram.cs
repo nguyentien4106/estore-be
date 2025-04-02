@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Services;
+using Estore.Application.Files.Commands.UploadFileTelegram;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;
@@ -9,14 +9,15 @@ public class UploadFileTelegram : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/files/telegram", async ([FromForm] UploadFileRequest request, [FromServices] ITelegramService services, ISender sender) =>
+        app.MapPost("/files/telegram", async ([FromForm] UploadFileRequest request, ISender sender) =>
         {
-            await services.SendFormFileToChannelAsync(request.File, "Caption " + request.UserName);
-
-            return Results.Ok();
+            var command = new UploadFileTelegramCommand(request.File, request.UserName);
+            
+            var result = await sender.Send(command);
+            return Results.Ok(result);
         })
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<AppResponse<R2File>>(StatusCodes.Status201Created)
+        .Produces<AppResponse<FileInformationDto>>(StatusCodes.Status201Created)
         .WithName("UploadFileTelegram")
         .WithTags("UploadFileTelegram")
         .DisableAntiforgery();

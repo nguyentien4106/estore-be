@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Estore.Application.Helpers;
 
 public static class FileHelper
@@ -106,4 +108,20 @@ public static class FileHelper
     /// <returns>The storage file name</returns>
     public static string CreateStorageFileName(string userName, string fileName) => $"{userName}/{fileName}";
 
+    /// <summary>
+    /// Creates a temporary file from an IFormFile and returns the file path
+    /// </summary>
+    /// <param name="file">The IFormFile to create a temporary file from</param>
+    /// <returns>The path to the temporary file</returns>
+    public static async Task<string> CreateTempFileAsync(IFormFile file)
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), file.FileName);
+        
+        using (var stream = new FileStream(tempPath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        return tempPath;
+    }
 } 

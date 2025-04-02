@@ -8,7 +8,7 @@ public class GetFileByNameHandler(IEStoreDbContext context) : IQueryHandler<GetF
 {
     public async Task<AppResponse<FileInformationDto>> Handle(GetFileByNameQuery query, CancellationToken cancellationToken)
     {
-        var file = await context.Files.FirstOrDefaultAsync(item => item.FileName == query.FileName);
+        var file = await context.Files.FirstOrDefaultAsync(item => item.FileName == query.FileName, cancellationToken);
 
         if(file is null)
         {

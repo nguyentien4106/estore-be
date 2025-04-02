@@ -1,20 +1,18 @@
 ﻿using Estore.Application.Helpers;
 using Estore.Application.Services;
 
-namespace Estore.Application.Files.Commands.UploadFile;
+namespace Estore.Application.Files.Commands.UploadFileTelegram;
 
-public class UploadFileHandler(
-    ICloudflareClient client,
+public class UploadFileTelegramHandler(
     IEStoreDbContext context,
-    UserManager<User> userManager
-    ) : ICommandHandler<UploadFileCommand, AppResponse<FileInformationDto>>
+    UserManager<User> userManager,
+    ITelegramService telegramService
+    ) : ICommandHandler<UploadFileTelegramCommand, AppResponse<FileInformationDto>>
 {
-    public async Task<AppResponse<FileInformationDto>> Handle(UploadFileCommand command, CancellationToken cancellationToken)
+    public async Task<AppResponse<FileInformationDto>> Handle(UploadFileTelegramCommand command, CancellationToken cancellationToken)
     {
         var file = command.File;
-        using Stream fileStream = file.OpenReadStream();
-        var storageFileName = FileHelper.CreateStorageFileName(command.UserName, file.FileName);
-        var result = await client.UploadFileAsync(storageFileName, fileStream, file.ContentType);
+        var result = await telegramService.UploadFileToStrorageAsync(file, "Caption " + command.UserName);
 
         if (!result.Succeed)
         {
@@ -31,10 +29,10 @@ public class UploadFileHandler(
             userId: Guid.Parse(user.Id),
             fileName: file.FileName,
             fileSize: FileHelper.GetFileSizeInMb(file.Length),
-            url: result.Data.Url,
+            url: result.Data.ToString(),
             fileType: FileHelper.DetermineFileType(file.FileName),
-            storageSource: StorageSource.R2,
-            storageFileName
+            storageSource: StorageSource.Telegram,
+            storageFileName: result.Data.ToString()
         );
 
         await context.Files.AddAsync(fileInformation);

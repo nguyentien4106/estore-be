@@ -1,6 +1,6 @@
 ﻿namespace Estore.Application.Files.Queries.GetFilesByUserName;
 
-public record GetFilesByUserNameQuery(string UserName) : IQuery<AppResponse<List<R2File>>>;
+public record GetFilesByUserNameQuery(string UserName) : IQuery<AppResponse<List<FileInformationDto>>>;
 
 public class GetFilesByUserNameQueryValidator : AbstractValidator<GetFilesByUserNameQuery>
 {
@@ -8,5 +8,5 @@ public class GetFilesByUserNameQueryValidator : AbstractValidator<GetFilesByUser
     {
             RuleFor(x => x.UserName)
                     .NotNull().WithMessage("UserName is required.");
-    }
+        }
 }

@@ -11,7 +11,7 @@ public class RegisterAccountHandler(IEStoreDbContext dbContext, UserManager<User
         var newUser = new User
         {
             Email = command.Email,
-            UserName = command.UserName,
+            UserName = command.UserName.Split("@").First(),
             PhoneNumber = command.PhoneNumber,
             FirstName = command.FirstName,
             LastName = command.LastName,

@@ -27,4 +27,8 @@
       <PackageReference Include="tdlib.native" Version="1.8.45" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Files\Commands\DeleteFileTelegram\" />
+    </ItemGroup>
+
 </Project>

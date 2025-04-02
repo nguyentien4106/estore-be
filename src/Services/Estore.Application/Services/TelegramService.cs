@@ -1,14 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Logging;
 using TdLib;
-using System.IO;
-using System.Text.Json;
-using SendGrid.Helpers.Mail;
 using static TdLib.TdApi;
 using Microsoft.AspNetCore.Http;
-
+using Estore.Application.Helpers;
 namespace Estore.Application.Services
 {
     public class TelegramService : ITelegramService
@@ -17,28 +11,75 @@ namespace Estore.Application.Services
         private readonly ILogger<TelegramService> _logger;
         private readonly TelegramConfiguration _config;
         private bool _isAuthenticated;
-        private readonly string _authFilePath;
         public TelegramService(TelegramConfiguration telegramConfiguration,
             ILogger<TelegramService> logger)
         {
             _logger = logger;
             _config = telegramConfiguration;
             _client = new TdClient();
-            _client.UpdateReceived += OnUpdateReceived;
 
-            _authFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "telegram_auth.json");
             InitializeAsync().Wait();
         }
 
+        public async Task<AppResponse<long>> UploadFileToStrorageAsync(IFormFile file, string caption = null)
+        {
+            try
+            {
+                if (!_isAuthenticated)
+                {
+                    _logger.LogWarning("Not authenticated. Attempting to authenticate...");
+                    await AuthenticateAsync();
+                }
+
+                return await UploadFileAsync(file, caption);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending IFormFile to Telegram channel");
+                return AppResponse<long>.Error(ex.Message);
+            }
+        }
+
+        
+        public async Task<long> GetChatIdAsync()
+        {
+            var chat = await _client.ExecuteAsync(new TdApi.GetChat { ChatId = _config.ChannelId });
+
+            return chat.Id;
+        }
+
+        /// <summary>
+        /// Deletes a message from a Telegram channel
+        /// </summary>
+        /// <param name="messageId">The ID of the message to delete</param>
+        /// <param name="revoke">Whether to delete the message for all users</param>
+        /// <returns>A task representing the asynchronous operation</returns>
+        public async Task<AppResponse<bool>> DeleteMessageAsync(long messageId)
+        {
+            try
+            {
+                await _client.ExecuteAsync(new DeleteMessages() { 
+                    ChatId = _config.ChannelId,
+                    MessageIds = [messageId] 
+                });
+
+                return AppResponse<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete message from Telegram channel");
+                return AppResponse<bool>.Error(ex.Message);
+            }
+        }
+        
         private async Task InitializeAsync()
         {
             try
             {
-                // Set log verbosity level
-                await _client.ExecuteAsync(new TdApi.SetLogVerbosityLevel { NewVerbosityLevel = 1 });
+                await _client.ExecuteAsync(new SetLogVerbosityLevel { NewVerbosityLevel = 1 });
 
-                // Set TdLib parameters
-                await _client.ExecuteAsync(new TdApi.SetTdlibParameters
+                await _client.ExecuteAsync(new SetTdlibParameters
                 {
                     UseMessageDatabase = false,
                     UseSecretChats = false,
@@ -58,10 +99,6 @@ namespace Estore.Application.Services
             }
         }
 
-        private void OnUpdateReceived(object? sender, Update update)
-        {
-           
-        }
 
         private async Task AuthenticateAsync()
         {
@@ -84,7 +121,6 @@ namespace Estore.Application.Services
 
                         case TdApi.AuthorizationState.AuthorizationStateWaitCode:
                             _logger.LogInformation("Waiting for authentication code...");
-                            // Use the code from configuration
                             var authCode = Console.ReadLine();
                             await _client.ExecuteAsync(new TdApi.CheckAuthenticationCode 
                             { 
@@ -134,81 +170,28 @@ namespace Estore.Application.Services
             }
         }
 
-        public async Task SendFileToChannelAsync(string filePath, string caption = null)
+        /// <summary>
+        /// Uploads a file to Telegram and returns the remote message ID
+        /// </summary>
+        /// <param name="file">The file to upload</param>
+        /// <param name="caption">Optional caption text for the file</param>
+        /// <returns>The message ID of the uploaded file in the channel</returns>
+        private async Task<AppResponse<long>> UploadFileAsync(IFormFile file, string caption)
         {
-            try
-            {
-                if (!_isAuthenticated)
-                {
-                    _logger.LogWarning("Not authenticated. Attempting to authenticate...");
-                    await AuthenticateAsync();
-                }
+            var tempPath = await FileHelper.CreateTempFileAsync(file);
 
-                var inputFile = new TdApi.InputFile.InputFileLocal { Path = filePath };
-                await _client.ExecuteAsync(new TdApi.SendMessage
-                {
-                    ChatId = _config.ChannelId,
-                    InputMessageContent = new TdApi.InputMessageContent.InputMessageDocument
-                    {
-                        Document = inputFile,
-                        Caption = new TdApi.FormattedText { Text = caption ?? string.Empty }
-                    }
-                });
-
-                _logger.LogInformation("File sent successfully to Telegram channel");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending file to Telegram channel");
-                throw;
-            }
-        }
-
-        public async Task SendFormFileToChannelAsync(IFormFile file, string caption = null)
-        {
-            try
-            {
-                if (!_isAuthenticated)
-                {
-                    _logger.LogWarning("Not authenticated. Attempting to authenticate...");
-                    await AuthenticateAsync();
-                }
-                await UploadFileAndGetRemoteIdAsync(file);
-                Console.WriteLine("✅ File sent successfully!");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending IFormFile to Telegram channel");
-                throw;
-            }
-        }
-
-        private async Task UploadFileAndGetRemoteIdAsync(IFormFile file)
-        {
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            var tempPath = Path.Combine(Directory.GetCurrentDirectory(), "temp", file.FileName);
-            await System.IO.File.WriteAllBytesAsync(tempPath, memoryStream.ToArray());
-
-            await _client.ExecuteAsync(new TdApi.SendMessage
+            var message = await _client.ExecuteAsync(new TdApi.SendMessage
             {
                 ChatId = _config.ChannelId, 
                 InputMessageContent = new TdApi.InputMessageContent.InputMessageDocument
                 {
                     Document = new TdApi.InputFile.InputFileLocal { Path = tempPath },
-                    Caption = new TdApi.FormattedText { Text = "Uploading file..." }
+                    Caption = new TdApi.FormattedText { Text = caption ?? string.Empty }
                 }
             });
 
+            return AppResponse<long>.Success(message.Id);
         }
 
-        public async Task<long> GetChatIdAsync()
-        {
-            var chat = await _client.ExecuteAsync(new TdApi.GetChat { ChatId = _config.ChannelId });
-
-            return chat.Id;
-        }
     }
-
-  
 }
