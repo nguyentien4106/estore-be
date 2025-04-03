@@ -37,9 +37,9 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddSingleton<IEmailSender<User>, EmailService>();
-        services.AddScoped<ICloudflareClient, CloudflareClient>();
-        services.AddSingleton<ITelegramService, TelegramService>();
+        services.AddTransient<IEmailSender<User>, EmailService>();
+        services.AddTransient<ICloudflareClient, CloudflareClient>();
+        services.AddTransient<ITelegramService, TelegramService>();
 
         return services;
     }

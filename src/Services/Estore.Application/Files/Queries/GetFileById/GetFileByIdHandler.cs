@@ -8,7 +8,7 @@ public class GetFileByIdHandler(IEStoreDbContext context) : IQueryHandler<GetFil
 {
     public async Task<AppResponse<FileInformationDto>> Handle(GetFileByIdQuery query, CancellationToken cancellationToken)
     {
-        var file = await context.Files.FindAsync(query.Id);
+        var file = await context.R2Files.FindAsync(query.Id);
 
         if(file is null)
         {

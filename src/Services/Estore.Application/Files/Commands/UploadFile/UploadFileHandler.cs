@@ -27,17 +27,16 @@ public class UploadFileHandler(
             return AppResponse<FileInformationDto>.NotFound("User", command.UserName);
         }
 
-        var fileInformation = FileInformation.Create(
+        var fileInformation = R2FileInformation.Create(
             userId: Guid.Parse(user.Id),
             fileName: file.FileName,
             fileSize: FileHelper.GetFileSizeInMb(file.Length),
             url: result.Data.Url,
             fileType: FileHelper.DetermineFileType(file.FileName),
-            storageSource: StorageSource.R2,
             storageFileName
         );
 
-        await context.Files.AddAsync(fileInformation);
+        await context.R2Files.AddAsync(fileInformation);
         await context.CommitAsync(cancellationToken);
         var dto = fileInformation.Adapt<FileInformationDto>();
 

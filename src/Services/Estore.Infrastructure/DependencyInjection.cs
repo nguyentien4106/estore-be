@@ -22,7 +22,7 @@ public static class DependencyInjection
             });
         });
 
-        services.AddScoped<IEStoreDbContext>(provider => provider.GetRequiredService<EStoreDbContext>());
+        services.AddTransient<IEStoreDbContext>(provider => provider.GetRequiredService<EStoreDbContext>());
 
 
         return services;

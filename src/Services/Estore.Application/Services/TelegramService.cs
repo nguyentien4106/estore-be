@@ -3,6 +3,7 @@ using TdLib;
 using static TdLib.TdApi;
 using Microsoft.AspNetCore.Http;
 using Estore.Application.Helpers;
+using Estore.Application.Services.Files;
 namespace Estore.Application.Services
 {
     public class TelegramService : ITelegramService
@@ -11,17 +12,40 @@ namespace Estore.Application.Services
         private readonly ILogger<TelegramService> _logger;
         private readonly TelegramConfiguration _config;
         private bool _isAuthenticated;
-        public TelegramService(TelegramConfiguration telegramConfiguration,
-            ILogger<TelegramService> logger)
+        private readonly IEStoreDbContext _context;
+
+        public TelegramService(TelegramConfiguration telegramConfiguration, ILogger<TelegramService> logger, IEStoreDbContext context)
         {
+            _context = context;
             _logger = logger;
             _config = telegramConfiguration;
             _client = new TdClient();
-
+            _client.UpdateReceived += OnUpdateReceived;
             InitializeAsync().Wait();
         }
 
-        public async Task<AppResponse<long>> UploadFileToStrorageAsync(IFormFile file, string caption = null)
+        private async void OnUpdateReceived(object sender, Update update)
+        {
+            if(update is TdApi.Update.UpdateNewMessage updateNewMessage){
+                _logger.LogInformation("New message received: {Message}", updateNewMessage.Message.Content);
+            }
+
+            if(update is TdApi.Update.UpdateFile file){
+                if(file.File.Remote.IsUploadingCompleted){
+                    //var localPath = file.File.Local.Path;
+                    //var fileInfo = await _context.TeleFiles.FirstOrDefaultAsync(item => item.LocalPath == localPath);
+                    //if(file is not null)
+                    //{
+                    //    fileInfo.RemoteFileId = file.File.Remote.Id;
+                    //    await _context.CommitAsync();
+                    //}
+                    _logger.LogInformation("File ID received: {File}", file.File.Remote.Id);
+
+                }
+            }
+        }
+
+        public async Task<AppResponse<long>> UploadFileToStrorageAsync(IFormFile file, string userId)
         {
             try
             {
@@ -31,7 +55,15 @@ namespace Estore.Application.Services
                     await AuthenticateAsync();
                 }
 
-                return await UploadFileAsync(file, caption);
+                var result = await UploadFileAsync(file, userId);
+
+                if (result.Succeed)
+                {
+                    var teleFile = TelegramFileInformation.Create(Guid.Parse(userId), file.FileName, FileHelper.GetFileSizeInMb(file.Length), FileHelper.DetermineFileType(file.FileName), result.Data, "");
+                    await _context.TeleFiles.AddAsync(teleFile);
+                    await _context.CommitAsync();
+                }
+                return AppResponse<long>.Success(1);
 
             }
             catch (Exception ex)
@@ -40,8 +72,45 @@ namespace Estore.Application.Services
                 return AppResponse<long>.Error(ex.Message);
             }
         }
+ 
+        private async Task<AppResponse<string>> UploadFileAsync(IFormFile file, string caption)
+        {
+            var tempPath = await FileHelper.CreateTempFileAsync(file);
+            var handler = FileHandlerFactory.GetHandler(FileHelper.DetermineFileType(file.FileName), _config);
+            var args = new FileHandlerArgs
+            {
+                TdClient = _client,
+                LocalPath = tempPath,
+                Caption = caption,
+                File = file
+            };
 
-        
+            return await handler.UploadFileAsync(args);
+        }
+
+        public async Task<AppResponse<string>> DownloadFileAsync(int fileId)
+        {
+            try
+            {
+                if (!_isAuthenticated)
+                {
+                    _logger.LogWarning("Not authenticated. Attempting to authenticate...");
+                    await AuthenticateAsync();
+                }
+                await _client.ExecuteAsync(new DownloadFile{
+                    FileId = fileId,
+                    Priority = 32
+                });
+
+                return AppResponse<string>.Success("File downloaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading file from Telegram");
+                return AppResponse<string>.Error(ex.Message);
+            }
+        }
+
         public async Task<long> GetChatIdAsync()
         {
             var chat = await _client.ExecuteAsync(new TdApi.GetChat { ChatId = _config.ChannelId });
@@ -49,12 +118,6 @@ namespace Estore.Application.Services
             return chat.Id;
         }
 
-        /// <summary>
-        /// Deletes a message from a Telegram channel
-        /// </summary>
-        /// <param name="messageId">The ID of the message to delete</param>
-        /// <param name="revoke">Whether to delete the message for all users</param>
-        /// <returns>A task representing the asynchronous operation</returns>
         public async Task<AppResponse<bool>> DeleteMessageAsync(long messageId)
         {
             try
@@ -98,7 +161,6 @@ namespace Estore.Application.Services
                 throw;
             }
         }
-
 
         private async Task AuthenticateAsync()
         {
@@ -170,28 +232,6 @@ namespace Estore.Application.Services
             }
         }
 
-        /// <summary>
-        /// Uploads a file to Telegram and returns the remote message ID
-        /// </summary>
-        /// <param name="file">The file to upload</param>
-        /// <param name="caption">Optional caption text for the file</param>
-        /// <returns>The message ID of the uploaded file in the channel</returns>
-        private async Task<AppResponse<long>> UploadFileAsync(IFormFile file, string caption)
-        {
-            var tempPath = await FileHelper.CreateTempFileAsync(file);
-
-            var message = await _client.ExecuteAsync(new TdApi.SendMessage
-            {
-                ChatId = _config.ChannelId, 
-                InputMessageContent = new TdApi.InputMessageContent.InputMessageDocument
-                {
-                    Document = new TdApi.InputFile.InputFileLocal { Path = tempPath },
-                    Caption = new TdApi.FormattedText { Text = caption ?? string.Empty }
-                }
-            });
-
-            return AppResponse<long>.Success(message.Id);
-        }
-
+       
     }
 }

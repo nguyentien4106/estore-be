@@ -17,4 +17,6 @@ public class TelegramConfiguration
     public string AuthCode { get;set; }
 
     public string TwoFactorPassword { get; set; }
+
+    public string BotToken { get; set; }
 }

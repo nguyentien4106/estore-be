@@ -12,7 +12,7 @@ public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<Use
             return AppResponse<List<FileInformationDto>>.NotFound("User", query.UserName);
         }
 
-        var files = await context.Files.Where(x => x.UserId == Guid.Parse(user.Id)).ToListAsync(cancellationToken);
+        var files = await context.R2Files.Where(x => x.UserId == Guid.Parse(user.Id)).ToListAsync(cancellationToken);
 
         return AppResponse<List<FileInformationDto>>.Success(files.Adapt<List<FileInformationDto>>());
     }

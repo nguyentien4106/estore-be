@@ -3,7 +3,6 @@ using EStore.Application.Data;
 using EStore.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace EStore.Infrastructure.Data;
 
@@ -17,8 +16,10 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     {
     }
 
-    public DbSet<FileInformation> FileInformations { get; set; }
-    
+    public DbSet<R2FileInformation> R2FileInfos { get; set; }
+
+    public DbSet<TelegramFileInformation> TeleFileInfos { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
@@ -32,7 +33,9 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
 
     public new DbSet<User> Users => base.Users;
 
-    public DbSet<FileInformation> Files => FileInformations;
+    public DbSet<R2FileInformation> R2Files => R2FileInfos;
+
+    public DbSet<TelegramFileInformation> TeleFiles => TeleFileInfos;
 
     public Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {

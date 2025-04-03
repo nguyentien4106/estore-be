@@ -9,12 +9,12 @@ public class DeleteFileTelegramHandler(IEStoreDbContext context, ITelegramServic
 {
     public async Task<AppResponse<FileInformationDto>> Handle(DeleteFileTelegramCommand command, CancellationToken cancellationToken)
     {
-        var file = await context.Files.FindAsync(command.Id, cancellationToken);
+        var file = await context.R2Files.FindAsync(command.Id, cancellationToken);
         if(file == null ){
             return AppResponse<FileInformationDto>.NotFound("File", command.Id);
         }
 
-        context.Files.Remove(file);
+        context.R2Files.Remove(file);
 
         var result = await telegramService.DeleteMessageAsync(long.Parse(file.Url));
         if(result.Succeed){
