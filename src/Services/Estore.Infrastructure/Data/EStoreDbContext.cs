@@ -19,6 +19,8 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     public DbSet<R2FileInformation> R2FileInfos { get; set; }
 
     public DbSet<TelegramFileInformation> TeleFileInfos { get; set; }
+    
+    public DbSet<TeleFileLocation> TeleFileLocations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -37,6 +39,7 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
 
     public DbSet<TelegramFileInformation> TeleFiles => TeleFileInfos;
 
+    public DbSet<TeleFileLocation> TeleFilesLocations => TeleFileLocations;
     public Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {
         return base.SaveChangesAsync(cancellationToken);

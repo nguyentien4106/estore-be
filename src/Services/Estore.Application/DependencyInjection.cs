@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Estore.Application.Services;
+using Estore.Application.Services.Telegram;
 
 namespace EStore.Application;
 
@@ -39,7 +40,7 @@ public static class DependencyInjection
     {
         services.AddTransient<IEmailSender<User>, EmailService>();
         services.AddTransient<ICloudflareClient, CloudflareClient>();
-        services.AddTransient<ITelegramService, TelegramService>();
+        services.AddSingleton<ITelegramService, TelegramService>();
 
         return services;
     }

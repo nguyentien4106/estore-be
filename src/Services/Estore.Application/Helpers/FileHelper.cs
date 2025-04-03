@@ -124,4 +124,24 @@ public static class FileHelper
 
         return tempPath;
     }
+
+    /// <summary>
+    /// Get the stream of the file
+    /// </summary>
+    /// <param name="file">The file to get the stream from</param>
+    /// <returns>The stream of the file</returns>
+    public static Stream GetFileStream(IFormFile file)
+    {
+        var stream = new MemoryStream();
+        file.CopyTo(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static byte[] GetFileBytes(IFormFile file)
+    {
+        using var stream = GetFileStream(file);
+        var memoryStream = stream as MemoryStream;
+        return memoryStream.ToArray();
+    }   
 } 

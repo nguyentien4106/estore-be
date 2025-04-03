@@ -6,11 +6,11 @@ public class TelegramFileInformation : FileInformation
 {
     public string LocalPath { get; set; } = default!;
 
-    public string RemotePath { get; set; } = default!;
+    public string? RemotePath { get; set; } = default!;
 
-    public string FileId { get; set; } = default!;
+    public string? FileId { get; set; } = default!;
 
-    public string RemoteFileId { get; set;} = default!;
+    public string? RemoteFileId { get; set;} = default!;
 
     public bool UploadCompleted { get; set; }
 

@@ -25,6 +25,7 @@
       <PackageReference Include="SendGrid" Version="9.29.3" />
       <PackageReference Include="TDLib" Version="1.8.45" />
       <PackageReference Include="tdlib.native" Version="1.8.45" />
+      <PackageReference Include="WTelegramClient" Version="4.3.2" />
     </ItemGroup>
 
     <ItemGroup>

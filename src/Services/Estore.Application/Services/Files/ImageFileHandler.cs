@@ -1,3 +1,4 @@
+using Estore.Application.Helpers;
 using TdLib;
 
 namespace Estore.Application.Services.Files;
@@ -8,7 +9,7 @@ public class ImageFileHandler(TelegramConfiguration config) : IFileHandler
     {
         try
         {
-            await args.TdClient.ExecuteAsync(new TdApi.SendMessage()
+            var result = await args.TdClient.ExecuteAsync(new TdApi.SendMessage()
             {
                 ChatId = config.ChannelId,
                 InputMessageContent = new TdApi.InputMessageContent.InputMessagePhoto
@@ -17,7 +18,8 @@ public class ImageFileHandler(TelegramConfiguration config) : IFileHandler
                     Caption = new TdApi.FormattedText { Text = args.Caption ?? string.Empty }
                 }
             });
-
+            DebugHelper.Log("SendMessage Result: ", result);
+            
             return AppResponse<string>.Success(args.LocalPath);
         }
         catch (Exception ex) 

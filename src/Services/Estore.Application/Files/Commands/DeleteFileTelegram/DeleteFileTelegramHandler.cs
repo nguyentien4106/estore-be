@@ -1,6 +1,7 @@
 ﻿using Estore.Application.Dtos.Files;
 using Estore.Application.Services;
 using EStore.Application.Data;
+using Estore.Application.Services.Telegram;
 using Mapster;
 
 namespace Estore.Application.Files.Commands.DeleteFileTelegram;
@@ -16,12 +17,12 @@ public class DeleteFileTelegramHandler(IEStoreDbContext context, ITelegramServic
 
         context.R2Files.Remove(file);
 
-        var result = await telegramService.DeleteMessageAsync(long.Parse(file.Url));
-        if(result.Succeed){
-            await context.CommitAsync(cancellationToken);
-            return AppResponse<FileInformationDto>.Success(file.Adapt<FileInformationDto>());
-        }
+        await telegramService.DeleteMessageAsync(long.Parse(file.Url));
+        // if(result.Succeed){
+        //     await context.CommitAsync(cancellationToken);
+        //     return AppResponse<FileInformationDto>.Success(file.Adapt<FileInformationDto>());
+        // }
 
-        return AppResponse<FileInformationDto>.Error(result.Message);
+        return AppResponse<FileInformationDto>.Error("result.Message");
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
 using Estore.Application.Services;
+using Estore.Application.Services.Telegram;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files;
@@ -11,9 +12,7 @@ public class ChatTelegram : ICarterModule
     {
         app.MapGet("/telegram", async ([FromServices]ITelegramService services , ISender sender) =>
         {
-            var result = await services.GetChatIdAsync();
-
-            return Results.Ok(result);
+            return Results.Ok(1);
         })
         .Produces<long>(StatusCodes.Status201Created)
         .WithName("ChatTelegram")

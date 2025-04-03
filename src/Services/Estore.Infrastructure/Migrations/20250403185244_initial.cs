@@ -34,6 +34,8 @@ namespace EStore.Infrastructure.Migrations
                     FirstName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     LastName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
+                    RefreshToken = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    RefreshTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -56,6 +58,70 @@ namespace EStore.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "R2FileInformation",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    StorageFileName = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
+                    Url = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true),
+                    FileName = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    FileSize = table.Column<decimal>(type: "numeric", nullable: false),
+                    FileType = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_R2FileInformation", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TeleFileLocation",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FileId = table.Column<long>(type: "bigint", nullable: false),
+                    AccessHash = table.Column<long>(type: "bigint", nullable: false),
+                    ThumbSize = table.Column<string>(type: "text", nullable: false),
+                    FileReference = table.Column<byte[]>(type: "bytea", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TeleFileLocation", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TelegramFileInformation",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LocalPath = table.Column<string>(type: "text", nullable: false),
+                    RemotePath = table.Column<string>(type: "text", nullable: true),
+                    FileId = table.Column<string>(type: "text", nullable: true),
+                    RemoteFileId = table.Column<string>(type: "text", nullable: true),
+                    UploadCompleted = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true),
+                    FileName = table.Column<string>(type: "text", nullable: false),
+                    FileSize = table.Column<decimal>(type: "numeric", nullable: false),
+                    FileType = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TelegramFileInformation", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -219,6 +285,15 @@ namespace EStore.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "R2FileInformation");
+
+            migrationBuilder.DropTable(
+                name: "TeleFileLocation");
+
+            migrationBuilder.DropTable(
+                name: "TelegramFileInformation");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

@@ -1,5 +1,6 @@
 ﻿using Estore.Application.Helpers;
 using Estore.Application.Services;
+using Estore.Application.Services.Telegram;
 
 namespace Estore.Application.Files.Commands.UploadFileTelegram;
 
@@ -19,25 +20,12 @@ public class UploadFileTelegramHandler(
         }
 
         var result = await telegramService.UploadFileToStrorageAsync(file, user.Id);
-
-        if (!result.Succeed)
-        {
-            return AppResponse<FileInformationDto>.Error(result.Message);
+        if(result.Succeed){
+            await context.TeleFilesLocations.AddAsync(result.Data);
+            await context.CommitAsync(cancellationToken);   
+            return AppResponse<FileInformationDto>.Success(null);
         }
 
-        var fileInformation = TelegramFileInformation.Create(
-            userId: Guid.Parse(user.Id),
-            fileName: file.FileName,
-            fileSize: FileHelper.GetFileSizeInMb(file.Length),
-            fileType: FileHelper.DetermineFileType(file.FileName),
-            "localPath",
-            "fileId"
-        );
-
-        await context.TeleFiles.AddAsync(fileInformation);
-        await context.CommitAsync(cancellationToken);
-        var dto = fileInformation.Adapt<FileInformationDto>();
-
-        return AppResponse<FileInformationDto>.Success(dto);
+        return AppResponse<FileInformationDto>.Success(null);
     }
 }

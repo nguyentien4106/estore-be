@@ -69,6 +69,43 @@ namespace EStore.Infrastructure.Migrations
                     b.ToTable("R2FileInformation");
                 });
 
+            modelBuilder.Entity("EStore.Domain.Models.TeleFileLocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AccessHash")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<long>("FileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("FileReference")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ThumbSize")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TeleFileLocation");
+                });
+
             modelBuilder.Entity("EStore.Domain.Models.TelegramFileInformation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -82,7 +119,6 @@ namespace EStore.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FileId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FileName")
@@ -106,11 +142,9 @@ namespace EStore.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("RemoteFileId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("RemotePath")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("UploadCompleted")
