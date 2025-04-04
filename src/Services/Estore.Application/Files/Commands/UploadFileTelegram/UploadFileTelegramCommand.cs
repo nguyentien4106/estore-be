@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Estore.Application.Files.Commands.UploadFileTelegram;
 
-public record UploadFileTelegramCommand(IFormFile File, string UserName) : ICommand<AppResponse<FileInformationDto>>;
+public record UploadFileTelegramCommand(IFormFile File, string UserName, int Width, int Height) : ICommand<AppResponse<TeleFileLocation>>;
 
 public class UploadFileTelegramValidator : AbstractValidator<UploadFileTelegramCommand>
 {

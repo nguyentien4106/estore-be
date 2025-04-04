@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;
 
-public record UploadFileRequest(IFormFile File, string UserName);
+public record UploadFileRequest(IFormFile File, string UserName, int Width, int Height);
 
 public class UploadFile : ICarterModule
 {
@@ -15,7 +15,7 @@ public class UploadFile : ICarterModule
     {
         app.MapPost("/files", async ([FromForm] UploadFileRequest request, ISender sender) =>
         {
-            var command = new UploadFileCommand(File: request.File, UserName: request.UserName);
+            var command = new UploadFileCommand(File: request.File, UserName: request.UserName, Width: request.Width, Height: request.Height);
             var result = await sender.Send(command);
 
             return Results.Ok(result);

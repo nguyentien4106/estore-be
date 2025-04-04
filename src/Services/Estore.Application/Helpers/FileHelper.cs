@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
 
 namespace Estore.Application.Helpers;
 
@@ -144,4 +145,14 @@ public static class FileHelper
         var memoryStream = stream as MemoryStream;
         return memoryStream.ToArray();
     }   
+
+    public static string GetFileExtension(string fileName)
+    {
+        return Path.GetExtension(fileName).TrimStart('.');
+    }
+
+    public static string CreateFilePathForDownload(string fileName)
+    {
+        return Path.Combine(Directory.GetCurrentDirectory(), "Downloads", fileName);
+    }
 } 

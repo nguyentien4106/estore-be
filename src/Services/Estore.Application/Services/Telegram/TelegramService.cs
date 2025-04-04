@@ -5,6 +5,7 @@ using Estore.Application.Helpers;
 using Estore.Application.Services.Files;
 using WTelegram;
 using TL;
+using Estore.Application.Files.Commands.UploadFileTelegram;
 
 namespace Estore.Application.Services.Telegram;
 
@@ -12,9 +13,8 @@ public class TelegramService : ITelegramService
 {
     private Client _client;
     private readonly TelegramConfiguration _telegramConfiguration;
-    private long access_hash = 1543940810101474296;
 
-    public TelegramService(TelegramConfiguration telegramConfiguration, ILogger<TelegramService> logger)
+    public TelegramService(TelegramConfiguration telegramConfiguration)
     {
         _telegramConfiguration = telegramConfiguration;
         CreateAndConnect().GetAwaiter().GetResult();
@@ -25,51 +25,107 @@ public class TelegramService : ITelegramService
         throw new NotImplementedException();
     }
 
-    public async Task<AppResponse<long>> DownloadFileAsync(TeleFileLocation fileLocation)
+    public async Task<AppResponse<string>> DownloadFileAsync(TeleFileLocation fileLocation)
     {
         try{
-             var photo = new Photo(){
-                access_hash= fileLocation.AccessHash,
-                id = fileLocation.FileId,
-                flags = 0,
-                sizes = [new PhotoSize(){
-                    type = "y",
-                    w = 1161,
-                    h = 750,
-                    size = 253931
-                }],
-                dc_id = 5,
-                file_reference = fileLocation.FileReference
-            };
-            var location = photo.ToFileLocation();
-            using var fileStream = File.Create(photo.id + ".png");
-
+            var filePath = FileHelper.CreateFilePathForDownload(fileLocation.FileName);
+            using var fileStream = File.Create(filePath);
+            var downloadFileHandler = FileHandlerFactory.GetDownloadFileHandler(fileLocation.FileType);
+            var location = downloadFileHandler.GetLocation(fileLocation);
             var result = await _client.DownloadFileAsync(location, fileStream);
-            return AppResponse<long>.Success(photo.id);
+
+            return AppResponse<string>.Success(filePath);
         }
         catch(Exception ex){
-            return AppResponse<long>.Error(ex.Message);
+            return AppResponse<string>.Error(ex.Message);
         }
     }
 
-    public async Task<AppResponse<TeleFileLocation>> UploadFileToStrorageAsync(IFormFile file, string userId)
+    public async Task<AppResponse<TeleFileLocation>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId)
     {
+        var file = command.File;
         var chats = await _client.Messages_GetAllChats();
-        InputPeer peer = chats.chats[_telegramConfiguration.ChannelId];
+        var peer = chats.chats[_telegramConfiguration.ChannelId];
+        var fileStream = FileHelper.GetFileStream(file);
+        var fileHandler = FileHandlerFactory.GetUploadFileHandler(FileHelper.DetermineFileType(file.FileName));
 
-        var inputFile = await _client.UploadFileAsync(FileHelper.GetFileStream(file), file.FileName);
-        
-        var photoInput =  new InputMediaUploadedPhoto { file = inputFile };
+        var fileUploaded = await fileHandler.UploadFileAsync(new UploadFileHandlerArgs{
+            Client = _client,
+            FileStream = fileStream,
+            Caption = file.FileName,
+            FileName = file.FileName,
+            Width = command.Width,
+            Height = command.Height
+        });
+       
+        var result = await _client.SendMessageAsync(peer, userId, fileUploaded);
 
-        var result = await _client.SendMessageAsync(peer, userId, photoInput);
-
-        if(result.media is MessageMediaPhoto mediaPhoto && mediaPhoto.photo is Photo photo){
-            var fileLocation = photo.ToFileLocation();
-            var location = TeleFileLocation.Create(photo.id, photo.access_hash, fileLocation.thumb_size, fileLocation.file_reference);
-            return AppResponse<TeleFileLocation>.Success(location);
+        if (result.media != null)
+        {
+            return CreateTeleFileLocationFromMedia(result.media, file, command.Width, command.Height, userId);
         }
-        
+
         return AppResponse<TeleFileLocation>.Error("Failed to upload file");
+    }
+
+    private AppResponse<TeleFileLocation> CreateTeleFileLocationFromMedia(MessageMedia media, IFormFile file, int width, int height, string userId)
+    {
+        if (media is MessageMediaPhoto mediaPhoto && mediaPhoto.photo is Photo photo)
+        {
+            return CreateTeleFileLocationFromPhoto(photo, file, width, height, userId);
+        }
+
+        if (media is MessageMediaDocument mediaDocument && mediaDocument.document is Document document)
+        {
+            return CreateTeleFileLocationFromDocument(document, file, width, height, userId);
+        }
+
+        return AppResponse<TeleFileLocation>.Error("Unsupported media type");
+    }
+
+    private AppResponse<TeleFileLocation> CreateTeleFileLocationFromPhoto(Photo photo, IFormFile file, int width, int height, string userId)
+    {
+        var fileLocation = photo.ToFileLocation();
+        var photoSize = photo.sizes.LastOrDefault();
+        var location = TeleFileLocation.Create(
+            fileLocation.id,
+            fileLocation.access_hash,
+            (uint)photo.flags,
+            fileLocation.file_reference,
+            photo.dc_id,
+            photoSize?.Width ?? width,
+            photoSize?.Height ?? height,
+            file.FileName,
+            file.Length,
+            FileHelper.DetermineFileType(file.FileName),
+            Path.GetExtension(file.FileName).TrimStart('.'),
+            photoSize?.Type ?? "",
+            userId
+        );
+        return AppResponse<TeleFileLocation>.Success(location);
+    }
+
+    private AppResponse<TeleFileLocation> CreateTeleFileLocationFromDocument(Document document, IFormFile file, int width, int height, string userId)
+    {
+        var fileLocation = document.ToFileLocation();
+        var photoSize = document.LargestThumbSize;
+        
+        var location = TeleFileLocation.Create(
+            fileLocation.id,
+            fileLocation.access_hash,
+            (uint)document.flags,
+            fileLocation.file_reference,
+            document.dc_id,
+            photoSize?.Width ?? width,
+            photoSize?.Height ?? height,
+            file.FileName,
+            file.Length,
+            FileHelper.DetermineFileType(file.FileName),
+            Path.GetExtension(file.FileName).TrimStart('.'),
+            photoSize?.Type ?? "v",
+            userId
+        );
+        return AppResponse<TeleFileLocation>.Success(location);
     }
 
     private string Config(string what)

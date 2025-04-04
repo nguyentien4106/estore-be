@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EStore.Infrastructure.Migrations
 {
     [DbContext(typeof(EStoreDbContext))]
-    [Migration("20250403185244_initial")]
-    partial class initial
+    [Migration("20250404090940_addthumbnail")]
+    partial class addthumbnail
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -87,12 +87,35 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("DcId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<long>("FileId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<byte[]>("FileReference")
                         .IsRequired()
                         .HasColumnType("bytea");
+
+                    b.Property<decimal>("FileSize")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("FileType")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Flags")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("timestamp with time zone");
@@ -100,9 +123,15 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("ThumbSize")
+                    b.Property<string>("Thumbnail")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

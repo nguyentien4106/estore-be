@@ -11,7 +11,7 @@ public class UploadFileTelegram : ICarterModule
     {
         app.MapPost("/files/telegram", async ([FromForm] UploadFileRequest request, ISender sender) =>
         {
-            var command = new UploadFileTelegramCommand(request.File, request.UserName);
+            var command = new UploadFileTelegramCommand(request.File, request.UserName, request.Width, request.Height);
             
             var result = await sender.Send(command);
             return Results.Ok(result);
