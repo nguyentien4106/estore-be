@@ -7,5 +7,7 @@ global using Estore.Domain.Enums.Files;
 global using Estore.Application.Dtos.Files;
 global using EStore.Domain.Models;
 global using Microsoft.EntityFrameworkCore;
-global using Mapster;
 global using EStore.Application.Data;
+global using BuildingBlocks.Models;
+global using Estore.Domain.Enums.Files;
+global using Mapster;

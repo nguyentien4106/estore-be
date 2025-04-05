@@ -1,6 +1,6 @@
 ﻿namespace Estore.Application.Files.Queries.GetFilesByUserName;
 
-public record GetFilesByUserNameQuery(string UserName) : IQuery<AppResponse<List<FileInformationDto>>>;
+public record GetFilesByUserNameQuery(string UserName) : IQuery<AppResponse<List<FileEntityResponse>>>;
 
 public class GetFilesByUserNameQueryValidator : AbstractValidator<GetFilesByUserNameQuery>
 {

@@ -2,7 +2,7 @@
 
 namespace Estore.Application.Files.Commands.DeleteFile;
 
-public record DeleteFileCommand(Guid Id) : ICommand<AppResponse<FileInformationDto>>;
+public record DeleteFileCommand(Guid Id) : ICommand<AppResponse<Guid>>;
 
 public class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
 {
@@ -10,5 +10,6 @@ public class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
         RuleFor(x => x.Id)
                     .NotNull().WithMessage("Id is required.")
                     .NotEmpty().WithMessage("Id cannot be empty.");
+
     }
 }

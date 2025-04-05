@@ -1,28 +1,24 @@
-﻿using Estore.Application.Dtos.Files;
-using Estore.Application.Services;
-using EStore.Application.Data;
-using Estore.Application.Services.Telegram;
-using Mapster;
+﻿using Estore.Application.Services.Telegram;
 
 namespace Estore.Application.Files.Commands.DeleteFileTelegram;
 
-public class DeleteFileTelegramHandler(IEStoreDbContext context, ITelegramService telegramService) : ICommandHandler<DeleteFileTelegramCommand, AppResponse<FileInformationDto>>
+public class DeleteFileTelegramHandler(ITelegramService telegramService, IEStoreDbContext context) : ICommandHandler<DeleteFileTelegramCommand, AppResponse<Guid>>
 {
-    public async Task<AppResponse<FileInformationDto>> Handle(DeleteFileTelegramCommand command, CancellationToken cancellationToken)
+    public async Task<AppResponse<Guid>> Handle(DeleteFileTelegramCommand command, CancellationToken cancellationToken)
     {
-        var file = await context.R2Files.FindAsync(command.Id, cancellationToken);
-        if(file == null ){
-            return AppResponse<FileInformationDto>.NotFound("File", command.Id);
+        var file = await context.TeleFileEntities.FindAsync(command.Id);
+        if (file is null)
+        {
+            return AppResponse<Guid>.NotFound("File", command.Id);
         }
 
-        context.R2Files.Remove(file);
-
-        await telegramService.DeleteMessageAsync(long.Parse(file.Url));
-        // if(result.Succeed){
-        //     await context.CommitAsync(cancellationToken);
-        //     return AppResponse<FileInformationDto>.Success(file.Adapt<FileInformationDto>());
-        // }
-
-        return AppResponse<FileInformationDto>.Error("result.Message");
+        var result = await telegramService.DeleteMessageAsync(file.MessageId);
+        if (result.Succeed){
+            context.TeleFileEntities.Remove(file);
+            await context.CommitAsync(cancellationToken);
+            return AppResponse<Guid>.Success(command.Id);
+        }
+        
+        return AppResponse<Guid>.Error(result.Message);
     }
 }

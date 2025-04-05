@@ -1,11 +1,10 @@
 using System.Reflection;
-using EStore.Application.Services;
-using EStore.Domain.Models;
 using BuildingBlocks.Behaviors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
-using Estore.Application.Services;
+using Estore.Application.Services.Cloudflare;
+using EStore.Application.Services.Email;
 using Estore.Application.Services.Telegram;
 
 namespace EStore.Application;

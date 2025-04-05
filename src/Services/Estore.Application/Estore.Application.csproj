@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Files\Commands\DeleteFileTelegram\" />
+      <Folder Include="Services\Telegram\Strategies\" />
     </ItemGroup>
 
 </Project>

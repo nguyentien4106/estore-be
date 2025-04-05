@@ -30,7 +30,8 @@ public static class EStoreExtensions
             {
                 policy.AllowAnyOrigin()
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+                .WithExposedHeaders("Content-Disposition");
             });
         });
 

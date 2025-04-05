@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using BuildingBlocks.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -53,15 +54,22 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
             Status = details.StatusCode,
             Instance = context.Request.Path
         };
-
+        
         problemDetails.Extensions.Add("traceId", context.TraceIdentifier);
 
         if (exception is ValidationException validationException)
         {
             problemDetails.Extensions.Add("ValidationErrors", validationException.Errors);
         }
+        
+        var response = new AppResponse<ProblemDetails>()
+        {
+            Succeed = false,
+            Data = problemDetails,
+            Message = exception.Message
+        };
 
-        await context.Response.WriteAsJsonAsync(problemDetails, cancellationToken: cancellationToken);
+        await context.Response.WriteAsJsonAsync(response, cancellationToken: cancellationToken);
 
         return true;
     }

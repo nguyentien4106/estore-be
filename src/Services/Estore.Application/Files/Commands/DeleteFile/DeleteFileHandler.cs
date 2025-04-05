@@ -1,27 +1,18 @@
-﻿using Estore.Application.Dtos.Files;
+﻿using Estore.Application.Helpers;
 using Estore.Application.Services;
-using EStore.Application.Data;
-using Mapster;
+using Estore.Application.Services.Files;
+using Estore.Application.Services.Telegram;
 
 namespace Estore.Application.Files.Commands.DeleteFile;
 
-public class DeleteFileHandler(ICloudflareClient client, IEStoreDbContext context) : ICommandHandler<DeleteFileCommand, AppResponse<FileInformationDto>>
+public class DeleteFileHandler(ITelegramService telegramService, IEStoreDbContext context) : ICommandHandler<DeleteFileCommand, AppResponse<Guid>>
 {
-    public async Task<AppResponse<FileInformationDto>> Handle(DeleteFileCommand command, CancellationToken cancellationToken)
+    public async Task<AppResponse<Guid>> Handle(DeleteFileCommand command, CancellationToken cancellationToken)
     {
-        var file = await context.R2Files.FindAsync(command.Id, cancellationToken);
-        if(file == null ){
-            return AppResponse<FileInformationDto>.NotFound("File", command.Id);
-        }
+        // var deleteFileHandler = TelegramFileHandlerFactory.GetDeleteFileHandler(command.StorageSource, context, telegramService);
+        //
+        // return await deleteFileHandler.DeleteFileAsync(command.Id, cancellationToken);
 
-        context.R2Files.Remove(file);
-
-        var result = await client.DeleteFileAsync(file.StorageFileName);
-        if(result.Succeed){
-            await context.CommitAsync(cancellationToken);
-            return AppResponse<FileInformationDto>.Success(file.Adapt<FileInformationDto>());
-        }
-
-        return AppResponse<FileInformationDto>.Error(result.Message);
+        return AppResponse<Guid>.Error(null);
     }
 }

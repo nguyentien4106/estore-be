@@ -5,9 +5,9 @@ namespace Estore.Application.Services.Telegram;
 
 public interface ITelegramService
 {
-    Task<AppResponse<TeleFileLocation>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId);
+    Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId);
 
-    Task<AppResponse<string>> DownloadFileAsync(TeleFileLocation fileLocation);
+    Task<AppResponse<string>> DownloadFileAsync(TeleFileEntity fileLocation);
 
-    Task DeleteMessageAsync(long messageId);
+    Task<AppResponse<bool>> DeleteMessageAsync(int messageId);
 }

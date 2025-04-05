@@ -6,11 +6,9 @@ public interface IEStoreDbContext
 {
     public DbSet<User> Users { get; }
 
-    public DbSet<R2FileInformation> R2Files { get; }
+    public DbSet<TeleFileEntity> TeleFileEntities { get; }
 
-    public DbSet<TelegramFileInformation> TeleFiles { get; }
-    
-    public DbSet<TeleFileLocation> TeleFilesLocations { get; }
+    public DbSet<R2FileEntity> R2FileEntities { get; }
 
     Task<int> CommitAsync(CancellationToken cancellationToken = default);
 }

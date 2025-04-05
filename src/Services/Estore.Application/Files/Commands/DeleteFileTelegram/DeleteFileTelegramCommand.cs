@@ -2,7 +2,7 @@
 
 namespace Estore.Application.Files.Commands.DeleteFileTelegram;
 
-public record DeleteFileTelegramCommand(Guid Id) : ICommand<AppResponse<FileInformationDto>>;
+public record DeleteFileTelegramCommand(Guid Id) : ICommand<AppResponse<Guid>>;
 
 public class DeleteFileTelegramValidator : AbstractValidator<DeleteFileTelegramCommand>
 {
@@ -10,5 +10,6 @@ public class DeleteFileTelegramValidator : AbstractValidator<DeleteFileTelegramC
         RuleFor(x => x.Id)
                     .NotNull().WithMessage("Id is required.")
                     .NotEmpty().WithMessage("Id cannot be empty.");
+
     }
 }

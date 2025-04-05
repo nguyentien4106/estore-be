@@ -22,11 +22,19 @@ namespace EStore.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("EStore.Domain.Models.R2FileInformation", b =>
+            modelBuilder.Entity("EStore.Domain.Models.R2FileEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("BucketFileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -34,10 +42,13 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("FileName")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("FileSize")
                         .HasColumnType("numeric");
@@ -51,25 +62,20 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("StorageFileName")
-                        .IsRequired()
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
-
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("R2FileInformation");
+                    b.ToTable("R2FileEntities");
                 });
 
-            modelBuilder.Entity("EStore.Domain.Models.TeleFileLocation", b =>
+            modelBuilder.Entity("EStore.Domain.Models.TeleFileEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -77,6 +83,10 @@ namespace EStore.Infrastructure.Migrations
 
                     b.Property<long>("AccessHash")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -120,71 +130,23 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("MessageId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Thumbnail")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Width")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.ToTable("TeleFileLocation");
-                });
-
-            modelBuilder.Entity("EStore.Domain.Models.TelegramFileInformation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FileId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("FileSize")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("FileType")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("LocalPath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RemoteFileId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RemotePath")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("UploadCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TelegramFileInformation");
+                    b.ToTable("TeleFileEntities");
                 });
 
             modelBuilder.Entity("EStore.Domain.Models.User", b =>

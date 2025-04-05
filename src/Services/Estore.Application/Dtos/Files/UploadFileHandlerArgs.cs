@@ -14,4 +14,6 @@ public class UploadFileHandlerArgs
     public int Width { get; set; }
 
     public int Height { get; set; }
+    
+    public string ContentType { get; set; }
 }

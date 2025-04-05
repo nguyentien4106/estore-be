@@ -1,9 +1,10 @@
 ﻿using Estore.Application.Constants;
+using Estore.Domain.Models.Base;
 using Microsoft.AspNetCore.Http;
 
 namespace Estore.Application.Files.Commands.UploadFile;
 
-public record UploadFileCommand(IFormFile File, string UserName, int Width, int Height) : ICommand<AppResponse<FileInformationDto>>;
+public record UploadFileCommand(IFormFile File, string UserName, int Width, int Height) : ICommand<AppResponse<FileEntity>>;
 
 public class UploadFileValidator : AbstractValidator<UploadFileCommand>
 {
