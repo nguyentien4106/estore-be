@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp;
 
-namespace Estore.Application.Helpers;
+namespace EStore.Application.Helpers;
 
 public static class R2Helper
 {

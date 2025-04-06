@@ -1,5 +1,5 @@
 ﻿
-namespace Estore.Application.Dtos.Files;
+namespace EStore.Application.Dtos.Files;
 
 public class UploadFileHandlerArgs
 {

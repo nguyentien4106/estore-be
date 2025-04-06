@@ -1,6 +1,6 @@
-﻿using Estore.Application.Dtos.Files;
+﻿using EStore.Application.Dtos.Files;
 
-namespace Estore.Application.Files.Commands.DeleteFileTelegram;
+namespace EStore.Application.Files.Commands.DeleteFileTelegram;
 
 public record DeleteFileTelegramCommand(Guid Id) : ICommand<AppResponse<Guid>>;
 

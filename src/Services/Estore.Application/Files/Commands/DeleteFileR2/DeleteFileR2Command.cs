@@ -1,6 +1,6 @@
-﻿using Estore.Application.Dtos.Files;
+﻿using EStore.Application.Dtos.Files;
 
-namespace Estore.Application.Files.Commands.DeleteFileR2;
+namespace EStore.Application.Files.Commands.DeleteFileR2;
 
 public record DeleteFileR2Command(Guid Id) : ICommand<AppResponse<Guid>>;
 

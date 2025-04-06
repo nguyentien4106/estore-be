@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Services;
-using Estore.Application.Services.Telegram;
+using EStore.Application.Services;
+using EStore.Application.Services.Telegram;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files;

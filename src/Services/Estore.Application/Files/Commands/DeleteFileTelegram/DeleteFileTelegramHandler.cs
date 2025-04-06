@@ -1,6 +1,6 @@
-﻿using Estore.Application.Services.Telegram;
+﻿using EStore.Application.Services.Telegram;
 
-namespace Estore.Application.Files.Commands.DeleteFileTelegram;
+namespace EStore.Application.Files.Commands.DeleteFileTelegram;
 
 public class DeleteFileTelegramHandler(ITelegramService telegramService, IEStoreDbContext context) : ICommandHandler<DeleteFileTelegramCommand, AppResponse<Guid>>
 {

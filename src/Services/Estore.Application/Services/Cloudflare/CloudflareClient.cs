@@ -2,12 +2,12 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.Runtime;
-using Estore.Domain.Models.Base;
-using Estore.Application.Helpers;
+using EStore.Domain.Models.Base;
+using EStore.Application.Helpers;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Services.Cloudflare;
+namespace EStore.Application.Services.Cloudflare;
 
 public class CloudflareClient : ICloudflareClient
 {

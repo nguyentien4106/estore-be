@@ -1,6 +1,6 @@
 ﻿using Carter;
-using Estore.Application.Factories;
-using Estore.Domain.Enums.Files;
+using EStore.Application.Factories;
+using EStore.Domain.Enums.Files;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;

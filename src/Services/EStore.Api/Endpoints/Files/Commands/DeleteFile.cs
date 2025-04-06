@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Factories;
+using EStore.Application.Factories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;

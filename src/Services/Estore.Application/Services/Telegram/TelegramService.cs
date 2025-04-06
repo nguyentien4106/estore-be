@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using TdLib;
 using Microsoft.AspNetCore.Http;
-using Estore.Application.Helpers;
-using Estore.Application.Services.Files;
+using EStore.Application.Helpers;
+using EStore.Application.Services.Files;
 using WTelegram;
 using TL;
-using Estore.Application.Files.Commands.UploadFileTelegram;
+using EStore.Application.Files.Commands.UploadFileTelegram;
 
-namespace Estore.Application.Services.Telegram;
+namespace EStore.Application.Services.Telegram;
 
 public class TelegramService : ITelegramService
 {

@@ -1,12 +1,12 @@
-using Estore.Application.Files.Commands.DeleteFileR2;
-using Estore.Application.Files.Commands.DeleteFileTelegram;
-using Estore.Application.Files.Commands.DownloadFileR2;
-using Estore.Application.Files.Commands.DownloadFileTelegram;
-using Estore.Application.Files.Commands.UploadFile;
-using Estore.Application.Files.Commands.UploadFileTelegram;
-using Estore.Domain.Models.Base;
+using EStore.Application.Files.Commands.DeleteFileR2;
+using EStore.Application.Files.Commands.DeleteFileTelegram;
+using EStore.Application.Files.Commands.DownloadFileR2;
+using EStore.Application.Files.Commands.DownloadFileTelegram;
+using EStore.Application.Files.Commands.UploadFile;
+using EStore.Application.Files.Commands.UploadFileTelegram;
+using EStore.Domain.Models.Base;
 
-namespace Estore.Application.Factories;
+namespace EStore.Application.Factories;
 
 public class CommandHandlerFactory
 {

@@ -1,4 +1,4 @@
-﻿namespace Estore.Application.Files.Commands.DownloadFileR2;
+﻿namespace EStore.Application.Files.Commands.DownloadFileR2;
 public record DownloadFileR2Command(Guid Id, StorageSource StorageSource) : ICommand<AppResponse<DownloadFileResponse>>;
 
 public class DownloadFileValidator : AbstractValidator<DownloadFileR2Command>

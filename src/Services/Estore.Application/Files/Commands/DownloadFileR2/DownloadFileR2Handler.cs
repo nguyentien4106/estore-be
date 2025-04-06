@@ -1,10 +1,10 @@
-﻿using Estore.Application.Helpers;
-using Estore.Application.Services;
-using Estore.Application.Services.Cloudflare;
-using Estore.Application.Services.Files;
-using Estore.Application.Services.Telegram;
+﻿using EStore.Application.Helpers;
+using EStore.Application.Services;
+using EStore.Application.Services.Cloudflare;
+using EStore.Application.Services.Files;
+using EStore.Application.Services.Telegram;
 
-namespace Estore.Application.Files.Commands.DownloadFileR2;
+namespace EStore.Application.Files.Commands.DownloadFileR2;
 
 public class DownloadFileR2Handler(IEStoreDbContext context, ICloudflareClient r2) : ICommandHandler<DownloadFileR2Command, AppResponse<DownloadFileResponse>>
 {

@@ -1,7 +1,7 @@
-using Estore.Application.Strategies.UploadFileEndpointHandler;
+using EStore.Application.Strategies.UploadFileEndpointHandler;
 using TL;
 
-namespace Estore.Application.Strategies.DeleteFileEndpointHandler;
+namespace EStore.Application.Strategies.DeleteFileEndpointHandler;
 
 public class UploadFileR2EndpointHandler : IUploadFileEndpointHandler
 {

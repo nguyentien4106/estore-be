@@ -1,7 +1,7 @@
-﻿using Estore.Application.Services.Telegram;
-using Estore.Domain.Models.Base;
+﻿using EStore.Application.Services.Telegram;
+using EStore.Domain.Models.Base;
 
-namespace Estore.Application.Files.Commands.UploadFileTelegram;
+namespace EStore.Application.Files.Commands.UploadFileTelegram;
 
 public class UploadFileTelegramHandler(
     IEStoreDbContext context,

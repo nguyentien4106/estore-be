@@ -1,7 +1,7 @@
-﻿using Estore.Application.Files.Commands.UploadFileTelegram;
+﻿using EStore.Application.Files.Commands.UploadFileTelegram;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Services.Telegram;
+namespace EStore.Application.Services.Telegram;
 
 public interface ITelegramService
 {

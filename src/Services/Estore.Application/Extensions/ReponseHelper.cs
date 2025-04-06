@@ -1,4 +1,4 @@
-using Estore.Domain.Models.Base;
+using EStore.Domain.Models.Base;
 
 namespace EStore.Application.Extensions;
 

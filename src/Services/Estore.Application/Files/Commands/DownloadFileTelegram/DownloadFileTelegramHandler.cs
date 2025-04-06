@@ -1,9 +1,9 @@
-﻿using Estore.Application.Helpers;
-using Estore.Application.Services;
-using Estore.Application.Services.Files;
-using Estore.Application.Services.Telegram;
+﻿using EStore.Application.Helpers;
+using EStore.Application.Services;
+using EStore.Application.Services.Files;
+using EStore.Application.Services.Telegram;
 
-namespace Estore.Application.Files.Commands.DownloadFileTelegram;
+namespace EStore.Application.Files.Commands.DownloadFileTelegram;
 
 public class DownloadFileTelegramHandler(ITelegramService telegramService, IEStoreDbContext context) : ICommandHandler<DownloadFileTelegramCommand, AppResponse<DownloadFileResponse>>
 {

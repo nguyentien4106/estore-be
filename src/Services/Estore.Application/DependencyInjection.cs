@@ -3,9 +3,9 @@ using BuildingBlocks.Behaviors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
-using Estore.Application.Services.Cloudflare;
+using EStore.Application.Services.Cloudflare;
 using EStore.Application.Services.Email;
-using Estore.Application.Services.Telegram;
+using EStore.Application.Services.Telegram;
 
 namespace EStore.Application;
 

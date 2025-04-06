@@ -17,11 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{8F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Api", "src\Services\EStore.Api\EStore.Api.csproj", "{3E00225E-CC56-49D5-8881-FDC0CC460BB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Estore.Application", "src\Services\Estore.Application\Estore.Application.csproj", "{16D85995-25CD-44C6-9F28-32E887126F14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Application", "src\Services\EStore.Application\EStore.Application.csproj", "{16D85995-25CD-44C6-9F28-32E887126F14}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Domain", "src\Services\Estore.Domain\EStore.Domain.csproj", "{43A6E9E3-AF09-435B-ADF1-E04FC1D49F9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Domain", "src\Services\EStore.Domain\EStore.Domain.csproj", "{43A6E9E3-AF09-435B-ADF1-E04FC1D49F9F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Infrastructure", "src\Services\Estore.Infrastructure\EStore.Infrastructure.csproj", "{111BE921-7E0D-4444-B4CD-130C262A671D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Infrastructure", "src\Services\EStore.Infrastructure\EStore.Infrastructure.csproj", "{111BE921-7E0D-4444-B4CD-130C262A671D}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{9DC693C1-1C57-4F7A-A9E9-28D96ACE097E}"
 EndProject

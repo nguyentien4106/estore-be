@@ -1,4 +1,4 @@
-﻿namespace Estore.Application.Files.Queries.GetFilesByUserName;
+﻿namespace EStore.Application.Files.Queries.GetFilesByUserName;
 
 public record GetFilesByUserNameQuery(string UserName) : IQuery<AppResponse<List<FileEntityResponse>>>;
 

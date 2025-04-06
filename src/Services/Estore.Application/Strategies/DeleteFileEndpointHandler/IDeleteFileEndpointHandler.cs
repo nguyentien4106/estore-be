@@ -1,4 +1,4 @@
-namespace Estore.Application.Strategies.DeleteFileEndpointHandler;
+namespace EStore.Application.Strategies.DeleteFileEndpointHandler;
 
 public interface IDeleteFileEndpointHandler
 {

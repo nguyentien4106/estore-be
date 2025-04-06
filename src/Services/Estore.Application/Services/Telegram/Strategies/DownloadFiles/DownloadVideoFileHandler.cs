@@ -1,7 +1,7 @@
-using Estore.Application.Helpers;
+using EStore.Application.Helpers;
 using TL;
 
-namespace Estore.Application.Services.Telegram.Strategies.DownloadFiles;
+namespace EStore.Application.Services.Telegram.Strategies.DownloadFiles;
 
 public class DownloadVideoFileHandler : IDownloadFileHandler
 {

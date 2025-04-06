@@ -1,7 +1,7 @@
-using Estore.Domain.Enums.Files;
+using EStore.Domain.Enums.Files;
 using EStore.Domain.Abstractions;
 
-namespace Estore.Domain.Models.Base;
+namespace EStore.Domain.Models.Base;
 
 public class FileEntity : Entity<Guid>
 {

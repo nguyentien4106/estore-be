@@ -1,5 +1,5 @@
 using EStore.Domain.Models;
-using Estore.Domain.Models.Base;
+using EStore.Domain.Models.Base;
 
 namespace EStore.Domain.Extensions;
 

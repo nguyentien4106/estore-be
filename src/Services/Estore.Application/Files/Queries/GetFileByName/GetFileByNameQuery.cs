@@ -1,6 +1,6 @@
-﻿using Estore.Application.Dtos.Files;
+﻿using EStore.Application.Dtos.Files;
 
-namespace Estore.Application.Files.Queries.GetFileByName;
+namespace EStore.Application.Files.Queries.GetFileByName;
 
 public record GetFileByNameQuery(string FileName) : IQuery<AppResponse<FileInformationDto>>;
 

@@ -1,6 +1,6 @@
 using TL;
 
-namespace Estore.Application.Services.Telegram.Strategies.DownloadFiles;
+namespace EStore.Application.Services.Telegram.Strategies.DownloadFiles;
 
 public class DownloadImageFileHandler() : IDownloadFileHandler
 {

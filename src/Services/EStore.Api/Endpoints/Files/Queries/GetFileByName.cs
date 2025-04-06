@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
-using Estore.Application.Files.Queries.GetFileByName;
+using EStore.Application.Files.Queries.GetFileByName;
 
 namespace EStore.Api.Endpoints.Files.Queries;
 

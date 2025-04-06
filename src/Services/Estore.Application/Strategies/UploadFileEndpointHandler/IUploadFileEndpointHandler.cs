@@ -1,4 +1,4 @@
-namespace Estore.Application.Strategies.UploadFileEndpointHandler;
+namespace EStore.Application.Strategies.UploadFileEndpointHandler;
 
 public interface IUploadFileEndpointHandler
 {

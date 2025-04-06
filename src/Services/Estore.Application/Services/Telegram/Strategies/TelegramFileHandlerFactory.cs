@@ -1,7 +1,7 @@
-using Estore.Application.Services.Telegram.Strategies.DownloadFiles;
-using Estore.Application.Services.Telegram.Strategies.UploadFiles;
+using EStore.Application.Services.Telegram.Strategies.DownloadFiles;
+using EStore.Application.Services.Telegram.Strategies.UploadFiles;
 
-namespace Estore.Application.Services.Files;
+namespace EStore.Application.Services.Files;
 
 public class TelegramFileHandlerFactory
 {

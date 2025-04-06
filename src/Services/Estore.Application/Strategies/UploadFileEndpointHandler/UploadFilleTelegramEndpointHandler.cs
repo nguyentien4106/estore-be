@@ -1,7 +1,7 @@
-using Estore.Application.Services.Telegram;
+using EStore.Application.Services.Telegram;
 using TL;
 
-namespace Estore.Application.Strategies.UploadFileEndpointHandler;
+namespace EStore.Application.Strategies.UploadFileEndpointHandler;
 
 public class UploadFileTelegramEndpointHandler() : IUploadFileEndpointHandler
 {

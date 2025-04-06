@@ -1,7 +1,7 @@
-﻿using Estore.Domain.Models.Base;
+﻿using EStore.Domain.Models.Base;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Services.Cloudflare;
+namespace EStore.Application.Services.Cloudflare;
 
 public interface ICloudflareClient
 {

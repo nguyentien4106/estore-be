@@ -1,7 +1,7 @@
-﻿using Estore.Domain.Models.Base;
+﻿using EStore.Domain.Models.Base;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Files.Commands.UploadFile;
+namespace EStore.Application.Files.Commands.UploadFile;
 
 public record UploadFileR2Command(IFormFile File, string UserName) : ICommand<AppResponse<FileEntity>>;
 

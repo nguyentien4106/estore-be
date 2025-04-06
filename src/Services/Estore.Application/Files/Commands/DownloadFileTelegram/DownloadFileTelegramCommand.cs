@@ -1,4 +1,4 @@
-﻿namespace Estore.Application.Files.Commands.DownloadFileTelegram;
+﻿namespace EStore.Application.Files.Commands.DownloadFileTelegram;
 public record DownloadFileTelegramCommand(Guid Id) : ICommand<AppResponse<DownloadFileResponse>>;
 
 public class DownloadFileTelegramValidator : AbstractValidator<DownloadFileTelegramCommand>

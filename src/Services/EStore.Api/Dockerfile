@@ -15,9 +15,9 @@ WORKDIR /src
 COPY ["src/Services/EStore.Api/EStore.Api.csproj", "src/Services/EStore.Api/"]
 COPY ["src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth/BuildingBlocks.Auth.csproj", "src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth/"]
 COPY ["src/BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "src/BuildingBlocks/BuildingBlocks/"]
-COPY ["src/Services/Estore.Application/Estore.Application.csproj", "src/Services/Estore.Application/"]
-COPY ["src/Services/Estore.Domain/EStore.Domain.csproj", "src/Services/Estore.Domain/"]
-COPY ["src/Services/Estore.Infrastructure/EStore.Infrastructure.csproj", "src/Services/Estore.Infrastructure/"]
+COPY ["src/Services/EStore.Application/EStore.Application.csproj", "src/Services/EStore.Application/"]
+COPY ["src/Services/EStore.Domain/EStore.Domain.csproj", "src/Services/EStore.Domain/"]
+COPY ["src/Services/EStore.Infrastructure/EStore.Infrastructure.csproj", "src/Services/EStore.Infrastructure/"]
 RUN dotnet restore "./src/Services/EStore.Api/EStore.Api.csproj"
 COPY . .
 WORKDIR "/src/src/Services/EStore.Api"

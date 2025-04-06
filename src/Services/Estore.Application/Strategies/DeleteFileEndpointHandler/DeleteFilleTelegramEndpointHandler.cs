@@ -1,7 +1,7 @@
-using Estore.Application.Services.Telegram;
+using EStore.Application.Services.Telegram;
 using TL;
 
-namespace Estore.Application.Strategies.DeleteFileEndpointHandler;
+namespace EStore.Application.Strategies.DeleteFileEndpointHandler;
 
 public class DeleteFileTelegramEndpointHandler() : IDeleteFileEndpointHandler
 {

@@ -1,6 +1,6 @@
 using TL;
 
-namespace Estore.Application.Strategies.DeleteFileEndpointHandler;
+namespace EStore.Application.Strategies.DeleteFileEndpointHandler;
 
 public class DeleteFileR2EndpointHandler : IDeleteFileEndpointHandler
 {

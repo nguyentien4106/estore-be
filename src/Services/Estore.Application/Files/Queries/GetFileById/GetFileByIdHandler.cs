@@ -1,8 +1,8 @@
-﻿using Estore.Application.Dtos.Files;
+﻿using EStore.Application.Dtos.Files;
 using EStore.Application.Data;
 using Mapster;
-using Estore.Application.Files.Queries.GetFileById;
-namespace Estore.Application.Files.Queries.GetFileByName;
+using EStore.Application.Files.Queries.GetFileById;
+namespace EStore.Application.Files.Queries.GetFileByName;
 
 public class GetFileByIdHandler(IEStoreDbContext context) : IQueryHandler<GetFileByIdQuery, AppResponse<FileInformationDto>>
 {

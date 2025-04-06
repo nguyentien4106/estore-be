@@ -1,5 +1,5 @@
-using Estore.Domain.Enums.Files;
-using Estore.Domain.Models.Base;
+using EStore.Domain.Enums.Files;
+using EStore.Domain.Models.Base;
 
 namespace EStore.Domain.Models;
 

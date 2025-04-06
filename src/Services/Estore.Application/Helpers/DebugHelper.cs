@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Estore.Application.Helpers;
+namespace EStore.Application.Helpers;
 
 public class DebugHelper
 {

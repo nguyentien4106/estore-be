@@ -1,4 +1,4 @@
-﻿namespace Estore.Domain.Enums.Files;
+﻿namespace EStore.Domain.Enums.Files;
 
 public enum StorageSource
 {

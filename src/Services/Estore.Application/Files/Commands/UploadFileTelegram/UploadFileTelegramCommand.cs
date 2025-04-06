@@ -1,8 +1,8 @@
-using Estore.Application.Constants;
-using Estore.Domain.Models.Base;
+using EStore.Application.Constants;
+using EStore.Domain.Models.Base;
 using Microsoft.AspNetCore.Http;
 
-namespace Estore.Application.Files.Commands.UploadFileTelegram;
+namespace EStore.Application.Files.Commands.UploadFileTelegram;
 
 public record UploadFileTelegramCommand(IFormFile File, string UserName, int Width, int Height) : ICommand<AppResponse<FileEntity>>;
 

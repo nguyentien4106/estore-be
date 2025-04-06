@@ -1,10 +1,10 @@
-﻿using Estore.Application.Helpers;
-using Estore.Application.Services;
-using Estore.Application.Services.Cloudflare;
-using Estore.Domain.Models.Base;
+﻿using EStore.Application.Helpers;
+using EStore.Application.Services;
+using EStore.Application.Services.Cloudflare;
+using EStore.Domain.Models.Base;
 using EStore.Domain.Extensions;
 
-namespace Estore.Application.Files.Commands.UploadFile;
+namespace EStore.Application.Files.Commands.UploadFile;
 
 public class UploadFileR2Handler(
     ICloudflareClient r2,

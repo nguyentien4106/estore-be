@@ -1,6 +1,6 @@
-﻿using Estore.Application.Services.Cloudflare;
+﻿using EStore.Application.Services.Cloudflare;
 
-namespace Estore.Application.Files.Commands.DeleteFileR2;
+namespace EStore.Application.Files.Commands.DeleteFileR2;
 
 public class DeleteFileHandler(ICloudflareClient r2, IEStoreDbContext context) : ICommandHandler<DeleteFileR2Command, AppResponse<Guid>>
 {

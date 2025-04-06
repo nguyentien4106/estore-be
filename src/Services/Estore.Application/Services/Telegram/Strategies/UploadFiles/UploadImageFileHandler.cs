@@ -1,6 +1,6 @@
 using TL;
 
-namespace Estore.Application.Services.Telegram.Strategies.UploadFiles;
+namespace EStore.Application.Services.Telegram.Strategies.UploadFiles;
 
 public class UploadImageFileHandler() : IUploadFileHandler
 {

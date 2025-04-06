@@ -1,8 +1,8 @@
-﻿using Estore.Application.Dtos.Files;
+﻿using EStore.Application.Dtos.Files;
 using EStore.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Mapster;
-namespace Estore.Application.Files.Queries.GetFileByName;
+namespace EStore.Application.Files.Queries.GetFileByName;
 
 public class GetFileByNameHandler(IEStoreDbContext context) : IQueryHandler<GetFileByNameQuery, AppResponse<FileInformationDto>>
 {

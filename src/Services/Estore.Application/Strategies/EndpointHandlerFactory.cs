@@ -1,7 +1,7 @@
-using Estore.Application.Strategies.DeleteFileEndpointHandler;
-using Estore.Application.Strategies.UploadFileEndpointHandler;
+using EStore.Application.Strategies.DeleteFileEndpointHandler;
+using EStore.Application.Strategies.UploadFileEndpointHandler;
 
-namespace Estore.Application.Strategies;
+namespace EStore.Application.Strategies;
 
 public class EndpointHandlerFactory
 {
