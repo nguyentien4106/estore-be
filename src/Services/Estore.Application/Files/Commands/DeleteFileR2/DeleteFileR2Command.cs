@@ -1,10 +1,10 @@
 ﻿using Estore.Application.Dtos.Files;
 
-namespace Estore.Application.Files.Commands.DeleteFile;
+namespace Estore.Application.Files.Commands.DeleteFileR2;
 
-public record DeleteFileCommand(Guid Id) : ICommand<AppResponse<Guid>>;
+public record DeleteFileR2Command(Guid Id) : ICommand<AppResponse<Guid>>;
 
-public class DeleteFileValidator : AbstractValidator<DeleteFileCommand>
+public class DeleteFileValidator : AbstractValidator<DeleteFileR2Command>
 {
     public DeleteFileValidator(){
         RuleFor(x => x.Id)

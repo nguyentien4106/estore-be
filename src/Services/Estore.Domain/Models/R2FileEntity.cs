@@ -5,11 +5,9 @@ namespace EStore.Domain.Models;
 
 public class R2FileEntity : FileEntity
 {
-    public string Url{get;set;} = default!;
+    public string FileKey{get;set;} = default!;
 
-    public string BucketFileName{get;set;} = default!;
-
-    public static R2FileEntity Create(string fileName, decimal fileSize, FileType fileType, string extension, string userId, string url, string bucketFileName)
+    public static R2FileEntity Create(string fileName, decimal fileSize, FileType fileType, string extension, string userId, string url, string key)
     {
         return new R2FileEntity{
             FileName = fileName,
@@ -17,8 +15,8 @@ public class R2FileEntity : FileEntity
             FileType = fileType,
             Extension = extension,
             UserId = userId,
-            Url = url,
-            BucketFileName = bucketFileName
+            // Url = url,
+            FileKey = key
         };
     }
 

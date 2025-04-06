@@ -1,5 +1,6 @@
 ﻿using Carter;
 using Estore.Application.Factories;
+using Estore.Domain.Enums.Files;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;
@@ -12,11 +13,15 @@ public class DownloadFile : ICarterModule
         {
             var command = CommandHandlerFactory.GetDownloadFileCommand(request);
             var result = await sender.Send(command);
-
+            
             if(!result.Succeed){
                 return Results.Ok(result);
             }
-            
+
+            if(request.StorageSource == StorageSource.R2){
+                return Results.Ok(result);
+            }
+
             if (!File.Exists(result.Data.FilePath))
             {
                 return Results.NotFound("FilePath not found.");

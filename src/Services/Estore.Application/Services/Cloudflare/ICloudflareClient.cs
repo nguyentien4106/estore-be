@@ -1,13 +1,18 @@
-﻿namespace Estore.Application.Services.Cloudflare;
+﻿using Estore.Domain.Models.Base;
+using Microsoft.AspNetCore.Http;
+
+namespace Estore.Application.Services.Cloudflare;
 
 public interface ICloudflareClient
 {
-    Task<AppResponse<R2File>> UploadFileAsync(string fileName, Stream fileStream, string contentType);
+    Task<AppResponse<FileEntity>> UploadFileAsync(IFormFile file, string userName);
 
-    Task<AppResponse<R2File>> DeleteFileAsync(string fileName);
+    Task<AppResponse<string>> DeleteFileAsync(string fileName);
 
     Task<AppResponse<R2File>> GetFileByNameAsync(string fileName);
 
     Task<AppResponse<List<R2File>>> GetFilesByUserNameAsync(string userName);
+
+    Task<AppResponse<string>> GeneratePresignedUrl(string fileKey);
 
 }

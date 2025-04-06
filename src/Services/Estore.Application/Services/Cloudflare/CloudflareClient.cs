@@ -2,6 +2,10 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.Runtime;
+using Estore.Domain.Models.Base;
+using Estore.Application.Helpers;
+using System.Net;
+using Microsoft.AspNetCore.Http;
 
 namespace Estore.Application.Services.Cloudflare;
 
@@ -10,6 +14,8 @@ public class CloudflareClient : ICloudflareClient
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
     private CloudflareConfiguration _cloudflareConfiguration;
+    private HttpStatusCode[] SuccessCodes = [HttpStatusCode.OK, HttpStatusCode.NoContent, HttpStatusCode.Accepted, HttpStatusCode.Created];
+   
     public CloudflareClient(CloudflareConfiguration cloudflareConfiguration)
     {
         _cloudflareConfiguration = cloudflareConfiguration;
@@ -25,33 +31,38 @@ public class CloudflareClient : ICloudflareClient
         _bucketName = cloudflareConfiguration.BucketName;
     }
 
-    public async Task<AppResponse<R2File>> UploadFileAsync(string fileName, Stream fileStream, string contentType)
+    public async Task<AppResponse<FileEntity>> UploadFileAsync(IFormFile file, string userName)
     {
+        var fileName = file.FileName;
+        var contentType = file.ContentType;
         var putRequest = new PutObjectRequest
         {
             BucketName = _bucketName,
-            Key = fileName,
-            InputStream = fileStream,
-            ContentType = contentType,
+            Key = R2Helper.GetR2FileKey(userName, fileName),
+            InputStream = FileHelper.GetFileStream(file),
+            ContentType = file.ContentType,
             DisablePayloadSigning = true,
         };
 
         var response = await _s3Client.PutObjectAsync(putRequest);
 
-        if (response.HttpStatusCode == System.Net.HttpStatusCode.OK) 
+        if (SuccessCodes.Contains(response.HttpStatusCode)) 
         {
-            return AppResponse<R2File>.Success(new ()
+            return AppResponse<FileEntity>.Success(new ()
             {
-                Url = await GeneratePresignedUrl(fileName),
-                FileName = fileName
+                FileName = fileName,
+                FileSize = file.Length,
+                FileType = FileHelper.DetermineFileType(fileName),
+                Extension = FileHelper.GetFileExtension(fileName),
+                ContentType = contentType,
             });
         }
 
-        return AppResponse<R2File>.Error(nameof(response.HttpStatusCode));
+        return AppResponse<FileEntity>.Error(response.HttpStatusCode.ToString());
     }
 
     // 📌 Delete Image from Cloudflare R2
-    public async Task<AppResponse<R2File>> DeleteFileAsync(string fileName)
+    public async Task<AppResponse<string>> DeleteFileAsync(string fileName)
     {
         var deleteRequest = new DeleteObjectRequest
         {
@@ -60,19 +71,19 @@ public class CloudflareClient : ICloudflareClient
         };
 
         var response = await _s3Client.DeleteObjectAsync(deleteRequest);
-        if (response.HttpStatusCode == System.Net.HttpStatusCode.NoContent)
+        if (SuccessCodes.Contains(response.HttpStatusCode))
         {
-            return AppResponse<R2File>.Success(new() { FileName = fileName });
+            return AppResponse<string>.Success(fileName);
         }
         
-        return AppResponse<R2File>.Error(response.HttpStatusCode.ToString());
+        return AppResponse<string>.Error(response.HttpStatusCode.ToString());
     }
 
     // 📌 Get Image Public URL
     public async Task<AppResponse<R2File>> GetFileByNameAsync(string fileName)
     {
         var url = await GeneratePresignedUrl(fileName);
-        return AppResponse<R2File>.Success(new () { Url = url, FileName = fileName });
+        return AppResponse<R2File>.Success(new () { Url = url.Data, FileName = fileName });
     }
 
     public async Task<AppResponse<List<R2File>>> GetFilesByUserNameAsync(string userName)
@@ -88,7 +99,7 @@ public class CloudflareClient : ICloudflareClient
         var r2List = response.S3Objects
             .Select(async obj => new R2File()
             {
-                Url = await GeneratePresignedUrl(obj.Key),
+                Url = "",//await GeneratePresignedUrl(obj.Key),
                 FileName = obj.Key,
             })
             .ToList();
@@ -98,17 +109,18 @@ public class CloudflareClient : ICloudflareClient
         return AppResponse<List<R2File>>.Success(r2Files.Where(file => !string.IsNullOrEmpty(file.Url)).ToList());
     }
         
-    private async Task<string> GeneratePresignedUrl(string fileName)
+    public async Task<AppResponse<string>> GeneratePresignedUrl(string fileKey)
     {
         AWSConfigsS3.UseSignatureVersion4 = true;
         var presign = new GetPreSignedUrlRequest
         {
             BucketName = _cloudflareConfiguration.BucketName,
-            Key = fileName,
+            Key = fileKey,
             Verb = HttpVerb.GET,
             Expires = DateTime.Now.AddDays(7),
         };
-
-        return await _s3Client.GetPreSignedURLAsync(presign);
+        var url = await _s3Client.GetPreSignedURLAsync(presign);
+        
+        return AppResponse<string>.Success(url);
     }
 }

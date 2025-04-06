@@ -1,6 +1,6 @@
-using Estore.Application.Files.Commands.DeleteFile;
+using Estore.Application.Files.Commands.DeleteFileR2;
 using Estore.Application.Files.Commands.DeleteFileTelegram;
-using Estore.Application.Files.Commands.DownloadFile;
+using Estore.Application.Files.Commands.DownloadFileR2;
 using Estore.Application.Files.Commands.DownloadFileTelegram;
 using Estore.Application.Files.Commands.UploadFile;
 using Estore.Application.Files.Commands.UploadFileTelegram;
@@ -14,7 +14,7 @@ public class CommandHandlerFactory
     {
         return request.StorageSource switch
         {
-            StorageSource.R2 => new UploadFileCommand(request.File, request.UserName, request.Width, request.Height),
+            StorageSource.R2 => new UploadFileR2Command(request.File, request.UserName),
             StorageSource.Telegram => new UploadFileTelegramCommand(request.File, request.UserName, request.Width, request.Height),
             _ => throw new NotSupportedException($"Storage source {request.StorageSource} is not supported")
         };
@@ -24,7 +24,7 @@ public class CommandHandlerFactory
     {
         return request.StorageSource switch
         {
-            StorageSource.R2 => new DeleteFileCommand(request.Id),
+            StorageSource.R2 => new DeleteFileR2Command(request.Id),
             StorageSource.Telegram => new DeleteFileTelegramCommand(request.Id),
             _ => throw new NotSupportedException($"Storage source {request.StorageSource} is not supported")
         };
@@ -34,7 +34,7 @@ public class CommandHandlerFactory
     {
         return request.StorageSource switch
         {
-            StorageSource.R2 => new DownloadFileCommand(request.Id, request.StorageSource),
+            StorageSource.R2 => new DownloadFileR2Command(request.Id, request.StorageSource),
             StorageSource.Telegram => new DownloadFileTelegramCommand(request.Id),
             _ => throw new NotSupportedException($"Storage source {request.StorageSource} is not supported")
         };

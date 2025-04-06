@@ -1,7 +1,7 @@
-﻿namespace Estore.Application.Files.Commands.DownloadFile;
-public record DownloadFileCommand(Guid Id, StorageSource StorageSource) : ICommand<AppResponse<DownloadFileResponse>>;
+﻿namespace Estore.Application.Files.Commands.DownloadFileR2;
+public record DownloadFileR2Command(Guid Id, StorageSource StorageSource) : ICommand<AppResponse<DownloadFileResponse>>;
 
-public class DownloadFileValidator : AbstractValidator<DownloadFileCommand>
+public class DownloadFileValidator : AbstractValidator<DownloadFileR2Command>
 {
     public DownloadFileValidator(){
         RuleFor(x => x.Id)

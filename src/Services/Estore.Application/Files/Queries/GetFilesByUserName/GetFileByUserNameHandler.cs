@@ -1,4 +1,6 @@
 ﻿
+using EStore.Application.Extensions;
+
 namespace Estore.Application.Files.Queries.GetFilesByUserName;
 
 public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<User> userManager) : IQueryHandler<GetFilesByUserNameQuery, AppResponse<List<FileEntityResponse>>>
@@ -12,10 +14,11 @@ public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<Use
             return AppResponse<List<FileEntityResponse>>.NotFound("User", query.UserName);
         }
 
-        var telegramFiles = await context.TeleFileEntities.Where(item => item.UserId == user.Id).OrderByDescending(item => item.CreatedAt).ToListAsync();
+        var telegramFiles = await context.TeleFileEntities.Where(item => item.UserId == user.Id).Select(item => item.ToFileEntityResponse()).ToListAsync(cancellationToken);
+        var r2Files = await context.R2FileEntities.Where(item => item.UserId == user.Id).Select(item => item.ToFileEntityResponse()).ToListAsync(cancellationToken);
         
-        var response = telegramFiles.Select(item => new FileEntityResponse(item.Id.ToString(), item.FileName, item.FileSize, item.ContentType, StorageSource.Telegram, item.CreatedAt));
+        var response = r2Files.Concat(telegramFiles).OrderByDescending(item => item.CreatedAt).ToList();
 
-        return AppResponse<List<FileEntityResponse>>.Success(response.ToList());
+        return AppResponse<List<FileEntityResponse>>.Success(response);
     }
 }

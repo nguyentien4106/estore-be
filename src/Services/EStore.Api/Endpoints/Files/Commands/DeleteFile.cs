@@ -1,10 +1,6 @@
-﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Models;
+﻿using BuildingBlocks.Models;
 using Carter;
 using Estore.Application.Factories;
-using Estore.Application.Files.Commands.DeleteFile;
-using Estore.Domain.Enums.Files;
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;

@@ -75,12 +75,11 @@ public class TelegramService : ITelegramService
         });
        
         var result = await _client.SendMessageAsync(_peer, userId, fileUploaded);
-        var messsageId = result.id;
+        var messageId = result.id;
 
         if (result.media != null)
         {
-
-            return CreateTeleFileLocationFromMedia(result.media, file, command.Width, command.Height, userId, messsageId);
+            return CreateTeleFileLocationFromMedia(result.media, file, command.Width, command.Height, userId, messageId);
         }
 
         return AppResponse<TeleFileEntity>.Error("Failed to upload file");
