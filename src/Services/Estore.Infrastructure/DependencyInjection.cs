@@ -1,3 +1,4 @@
+using Estore.Infrastructure.Data.Interceptors;
 using EStore.Application.Data;
 using EStore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Database");
+
+        services.AddScoped<ISaveChangesInterceptor, FileInterceptor>();
 
         services.AddDbContext<EStoreDbContext>((sp, options) =>
         {

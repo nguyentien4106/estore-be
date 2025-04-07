@@ -17,6 +17,7 @@ public class GetFileById : ICarterModule
         })
         .Produces<AppResponse<FileInformationDto>>(StatusCodes.Status200OK)
         .WithName("GetFileById")
-        .WithTags("GetFileById");
+        .WithTags("GetFileById")
+        .RequireAuthorization();
     }
 }

@@ -16,13 +16,13 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     {
     }
 
-    // public DbSet<R2FileInformation> R2FileInfos { get; set; }
-    //
-    // public DbSet<TelegramFileInformation> TeleFileInfos { get; set; }
+    public new DbSet<User> Users => base.Users;
     
     public DbSet<TeleFileEntity> TeleFileEntities { get; set; }
 
     public DbSet<R2FileEntity> R2FileEntities { get; set; }
+
+    public DbSet<StorageUsage> StorageUsages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -35,15 +35,6 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
         optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres");
     }
 
-    public new DbSet<User> Users => base.Users;
-    //
-    // public DbSet<R2FileInformation> R2Files => R2FileInfos;
-    //
-    // public DbSet<TelegramFileInformation> TeleFiles => TeleFileInfos;
-
-    // public DbSet<TeleFileEntity> TeleFileEntities => this.TeleFileEntities;
-
-    // public DbSet<R2FileEntity> R2FileEntities => this.R2FileEntities;
     public Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {
         return base.SaveChangesAsync(cancellationToken);

@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Models;
+using BuildingBlocks.Pagination;
 using Carter;
 using EStore.Application.Files.Queries.GetFilesByUserName;
 
@@ -8,15 +9,16 @@ public class GetFilesByUserName : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/files/users/{userName}", async (string userName, ISender sender) =>
+        app.MapGet("/files/users/{userName}", async (string userName, [AsParameters]PaginationRequest request, ISender sender) =>
         {
-            var command = new GetFilesByUserNameQuery(userName);
+            var command = new GetFilesByUserNameQuery(userName, request);
             var result = await sender.Send(command);
 
             return Results.Ok(result);
         })
-        .Produces<AppResponse<List<FileEntityResponse>>>(StatusCodes.Status200OK)
+        .Produces<AppResponse<PaginatedResult<FileEntityResponse>>>(StatusCodes.Status200OK)
         .WithName("GetFilesByUserName")
-        .WithTags("GetFilesByUserName");
+        .WithTags("GetFilesByUserName")
+        .RequireAuthorization();
     }
 }

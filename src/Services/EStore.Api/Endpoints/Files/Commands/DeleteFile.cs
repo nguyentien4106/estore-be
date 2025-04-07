@@ -18,6 +18,7 @@ public class DeleteFile : ICarterModule
         })
         .Produces<AppResponse<Guid>>(StatusCodes.Status201Created)
         .WithName("DeleteFile")
-        .WithTags("DeleteFile");
+        .WithTags("DeleteFile")
+        .RequireAuthorization();
     }
 }

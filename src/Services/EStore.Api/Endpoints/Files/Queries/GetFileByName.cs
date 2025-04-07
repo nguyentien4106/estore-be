@@ -17,6 +17,7 @@ public class GetFileByName : ICarterModule
         })
         .Produces<AppResponse<R2File>>(StatusCodes.Status200OK)
         .WithName("GetFileByName")
-        .WithTags("GetFileByName");
+        .WithTags("GetFileByName")
+        .RequireAuthorization();
     }
 }

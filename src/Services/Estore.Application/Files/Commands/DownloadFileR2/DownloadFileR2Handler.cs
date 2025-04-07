@@ -10,9 +10,6 @@ public class DownloadFileR2Handler(IEStoreDbContext context, ICloudflareClient r
 {
     public async Task<AppResponse<DownloadFileResponse>> Handle(DownloadFileR2Command command, CancellationToken cancellationToken)
     {
-        // var deleteFileHandler = TelegramFileHandlerFactory.GetDeleteFileHandler(command.StorageSource, context, telegramService);
-        //
-        // return await deleteFileHandler.DeleteFileAsync(command.Id, cancellationToken);
         var file = await context.R2FileEntities.FindAsync(command.Id, cancellationToken);
         if (file == null)
         {

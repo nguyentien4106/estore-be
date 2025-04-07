@@ -10,5 +10,7 @@ public interface IEStoreDbContext
 
     public DbSet<R2FileEntity> R2FileEntities { get; }
 
+    public DbSet<StorageUsage> StorageUsages { get; }
+
     Task<int> CommitAsync(CancellationToken cancellationToken = default);
 }

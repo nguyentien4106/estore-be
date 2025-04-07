@@ -39,6 +39,7 @@ public class DownloadFile : ICarterModule
             return file;
         })
         .WithName("DownloadFile")
-        .WithTags("DownloadFile");
+        .WithTags("DownloadFile")
+        .RequireAuthorization();
     }
 }

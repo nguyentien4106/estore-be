@@ -50,8 +50,8 @@ namespace EStore.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("FileSize")
-                        .HasColumnType("numeric");
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("FileType")
                         .HasColumnType("integer");
@@ -69,6 +69,39 @@ namespace EStore.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("R2FileEntities");
+                });
+
+            modelBuilder.Entity("EStore.Domain.Models.StorageUsage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("StorageSource")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("UsedSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StorageUsages");
                 });
 
             modelBuilder.Entity("EStore.Domain.Models.TeleFileEntity", b =>
@@ -108,8 +141,8 @@ namespace EStore.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<decimal>("FileSize")
-                        .HasColumnType("numeric");
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("FileType")
                         .HasColumnType("integer");

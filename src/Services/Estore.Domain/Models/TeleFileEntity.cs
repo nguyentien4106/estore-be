@@ -23,7 +23,7 @@ public class TeleFileEntity : FileEntity
 
     public string Thumbnail {get;set;} = default!;
 
-    public static TeleFileEntity Create(long fileId, long accessHash, uint flags, byte[] fileReference, int dc_id, int width, int height, string fileName, decimal fileSize, FileType fileType, string extension, string thumbnail, string userId, int messageId, string contentType)
+    public static TeleFileEntity Create(long fileId, long accessHash, uint flags, byte[] fileReference, int dc_id, int width, int height, string fileName, long fileSize, FileType fileType, string extension, string thumbnail, string userId, int messageId, string contentType)
     {
         return new TeleFileEntity{
             FileId = fileId,

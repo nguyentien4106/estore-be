@@ -1,6 +1,8 @@
-﻿namespace EStore.Application.Files.Queries.GetFilesByUserName;
+﻿using BuildingBlocks.Pagination;
 
-public record GetFilesByUserNameQuery(string UserName) : IQuery<AppResponse<List<FileEntityResponse>>>;
+namespace EStore.Application.Files.Queries.GetFilesByUserName;
+
+public record GetFilesByUserNameQuery(string UserName, PaginationRequest PaginationRequest) : IQuery<AppResponse<PaginatedResult<FileEntityResponse>>>;
 
 public class GetFilesByUserNameQueryValidator : AbstractValidator<GetFilesByUserNameQuery>
 {
