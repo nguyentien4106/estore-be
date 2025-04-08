@@ -9,16 +9,17 @@ public class DownloadFileTelegramHandler(ITelegramService telegramService, IESto
 {
     public async Task<AppResponse<DownloadFileResponse>> Handle(DownloadFileTelegramCommand command, CancellationToken cancellationToken)
     {
-        var file = await context.TeleFileEntities.FindAsync(command.Id);
+        var file = await context.TeleFileEntities.FindAsync(command.Id, cancellationToken);
         if (file is null)
         {
             return AppResponse<DownloadFileResponse>.NotFound("File", command.Id);
         }
 
         var result = await telegramService.DownloadFileAsync(file);
-        if (result.Succeed)
+        
+        if (result.Succeed && result.Data is not null)
         {
-            return AppResponse<DownloadFileResponse>.Success(new DownloadFileResponse(result.Data, file.ContentType));
+            return AppResponse<DownloadFileResponse>.Success(new DownloadFileResponse(result.Data, file.FileName,file.ContentType));
         }
 
         return AppResponse<DownloadFileResponse>.Error(result.Message);

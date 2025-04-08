@@ -2,6 +2,7 @@
 using EStore.Application.Factories;
 using EStore.Domain.Enums.Files;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace EStore.Api.Endpoints.Files.Commands;
 
@@ -14,32 +15,25 @@ public class DownloadFile : ICarterModule
             var command = CommandHandlerFactory.GetDownloadFileCommand(request);
             var result = await sender.Send(command);
             
-            if(!result.Succeed){
+            if(!result.Succeed || result.Data is null){
                 return Results.Ok(result);
             }
 
-            if(request.StorageSource == StorageSource.R2){
-                return Results.Ok(result);
-            }
-
-            if (!File.Exists(result.Data.FilePath))
+            try
             {
-                return Results.NotFound("FilePath not found.");
+                return Results.File(
+                    fileStream: result.Data.FileStream,
+                    contentType: result.Data.ContentType,
+                    fileDownloadName: result.Data.FileName,
+                    enableRangeProcessing: true
+                );
             }
-
-            var fileName = Path.GetFileName(result.Data.FilePath);
-            
-            var file = Results.File(
-                fileStream: File.OpenRead(result.Data.FilePath),
-                contentType: result.Data.ContentType,
-                fileDownloadName: fileName,
-                enableRangeProcessing: true
-            );
-            
-            return file;
+            catch (Exception ex)
+            {
+                return Results.Problem($"Error processing file: {ex.Message}");
+            }
         })
         .WithName("DownloadFile")
-        .WithTags("DownloadFile")
-        .RequireAuthorization();
+        .WithTags("DownloadFile");
     }
 }

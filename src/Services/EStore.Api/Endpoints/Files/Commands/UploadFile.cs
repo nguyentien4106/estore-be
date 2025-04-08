@@ -20,7 +20,6 @@ public class UploadFile : ICarterModule
         .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
         .WithName("UploadFile")
         .WithTags("UploadFile")
-        .RequireAuthorization()
         .DisableAntiforgery();
     }
 }

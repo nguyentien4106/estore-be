@@ -7,7 +7,7 @@ public interface ITelegramService
 {
     Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId);
 
-    Task<AppResponse<string>> DownloadFileAsync(TeleFileEntity fileLocation);
+    Task<AppResponse<Stream>> DownloadFileAsync(TeleFileEntity fileLocation);
 
     Task<AppResponse<bool>> DeleteMessageAsync(int messageId);
 }

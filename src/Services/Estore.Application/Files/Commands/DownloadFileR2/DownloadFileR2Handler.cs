@@ -16,8 +16,13 @@ public class DownloadFileR2Handler(IEStoreDbContext context, ICloudflareClient r
             return AppResponse<DownloadFileResponse>.NotFound("File", "Id");
         }
 
-        var url = await r2.GeneratePresignedUrl(file.FileKey);
+        var stream = await r2.DownloadFile(file.FileKey);
         
-        return AppResponse<DownloadFileResponse>.Success(new (url.Data, file.ContentType));
+        if (stream.Succeed && stream.Data is not null)
+        {
+            return AppResponse<DownloadFileResponse>.Success(new (stream.Data, file.FileName, file.ContentType));
+        }
+
+        return AppResponse<DownloadFileResponse>.Error(stream.Message);
     }
 }

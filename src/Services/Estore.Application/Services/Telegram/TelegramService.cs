@@ -36,25 +36,19 @@ public class TelegramService : ITelegramService
         }
     }
 
-    public async Task<AppResponse<string>> DownloadFileAsync(TeleFileEntity fileLocation)
+    public async Task<AppResponse<Stream>> DownloadFileAsync(TeleFileEntity fileLocation)
     {
         try{
-            var filePath = FileHelper.CreateFilePathForDownload(fileLocation.FileName);
-
-            // if (File.Exists(filePath))
-            // {
-            //     return AppResponse<string>.Success(filePath);
-            // }
-            
-            using var fileStream = File.Create(filePath);
+            Stream fileStream = new MemoryStream();
             var downloadFileHandler = TelegramFileHandlerFactory.GetDownloadFileHandler(fileLocation.FileType);
             var location = downloadFileHandler.GetLocation(fileLocation);
             var result = await _client.DownloadFileAsync(location, fileStream);
-
-            return AppResponse<string>.Success(filePath);
+            fileStream.Position = 0;
+            
+            return AppResponse<Stream>.Success(fileStream);
         }
         catch(Exception ex){
-            return AppResponse<string>.Error(ex.Message);
+            return AppResponse<Stream>.Error(ex.Message);
         }
     }
 

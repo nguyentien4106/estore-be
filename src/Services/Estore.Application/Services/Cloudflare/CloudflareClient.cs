@@ -6,6 +6,7 @@ using EStore.Domain.Models.Base;
 using EStore.Application.Helpers;
 using System.Net;
 using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace EStore.Application.Services.Cloudflare;
 
@@ -79,48 +80,46 @@ public class CloudflareClient : ICloudflareClient
         return AppResponse<string>.Error(response.HttpStatusCode.ToString());
     }
 
-    // 📌 Get Image Public URL
-    public async Task<AppResponse<R2File>> GetFileByNameAsync(string fileName)
-    {
-        var url = await GeneratePresignedUrl(fileName);
-        return AppResponse<R2File>.Success(new () { Url = url.Data, FileName = fileName });
-    }
-
-    public async Task<AppResponse<List<R2File>>> GetFilesByUserNameAsync(string userName)
-    {
-        var listRequest = new ListObjectsV2Request
-        {
-            BucketName = _bucketName,
-            Prefix = userName
-        };
-
-        var response = await _s3Client.ListObjectsV2Async(listRequest);
-        
-        var r2List = response.S3Objects
-            .Select(async obj => new R2File()
-            {
-                Url = "",//await GeneratePresignedUrl(obj.Key),
-                FileName = obj.Key,
-            })
-            .ToList();
-
-        var r2Files = await Task.WhenAll(r2List);
-        
-        return AppResponse<List<R2File>>.Success(r2Files.Where(file => !string.IsNullOrEmpty(file.Url)).ToList());
-    }
-        
     public async Task<AppResponse<string>> GeneratePresignedUrl(string fileKey)
     {
-        AWSConfigsS3.UseSignatureVersion4 = true;
-        var presign = new GetPreSignedUrlRequest
+        try{
+            AWSConfigsS3.UseSignatureVersion4 = true;
+            var presign = new GetPreSignedUrlRequest
+            {
+                BucketName = _cloudflareConfiguration.BucketName,
+                Key = fileKey,
+                Verb = HttpVerb.GET,
+                Expires = DateTime.Now.AddDays(7),
+            };
+            var url = await _s3Client.GetPreSignedURLAsync(presign);
+                
+                return AppResponse<string>.Success(url);
+            }
+        catch(Exception ex){
+            return AppResponse<string>.Error(ex.Message);
+        }
+    }
+
+    public async Task<AppResponse<Stream>> DownloadFile(string fileKey)
+    {
+        try
         {
-            BucketName = _cloudflareConfiguration.BucketName,
-            Key = fileKey,
-            Verb = HttpVerb.GET,
-            Expires = DateTime.Now.AddDays(7),
-        };
-        var url = await _s3Client.GetPreSignedURLAsync(presign);
-        
-        return AppResponse<string>.Success(url);
+            var request = new GetObjectRequest
+            {
+                BucketName = _cloudflareConfiguration.BucketName,
+                Key = fileKey
+            };
+
+            using var response = await _s3Client.GetObjectAsync(request);
+            var memoryStream = new MemoryStream();
+            await response.ResponseStream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+            
+            return AppResponse<Stream>.Success(memoryStream);
+        }
+        catch(Exception ex)
+        {
+            return AppResponse<Stream>.Error(ex.Message);
+        }
     }
 }

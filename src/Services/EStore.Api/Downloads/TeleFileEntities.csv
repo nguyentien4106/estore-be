@@ -1,3 +1,0 @@
-"Id","MessageId","FileId","AccessHash","Flags","FileReference","Width","Height","DcId","Thumbnail","CreatedAt","CreatedBy","LastModified","LastModifiedBy","FileName","FileSize","FileType","Extension","UserId","ContentType"
-"d894afc6-360d-4357-9c3e-7d0c40b0a08e",126,"6307559872958416714","8793885505233062978","0","binary data",1536,1024,5,"w","2025-04-06 00:18:47.130729+00",NULL,NULL,NULL,"cloud-storage.png","1458583",1,"png","a858e805-5524-43bc-92b4-65dd4525aeeb","image/png"
-"ec21b814-9591-42e3-b6f8-ee4b12cb1b5e",125,"6307559872502175357","-820494222897333940","0","binary data",1280,720,5,"v","2025-04-06 00:10:15.372917+00",NULL,NULL,NULL,"SampleVideo_1280x720_10mb.mp4","10498677",5,"mp4","a858e805-5524-43bc-92b4-65dd4525aeeb","video/mp4"

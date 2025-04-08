@@ -9,10 +9,8 @@ public interface ICloudflareClient
 
     Task<AppResponse<string>> DeleteFileAsync(string fileName);
 
-    Task<AppResponse<R2File>> GetFileByNameAsync(string fileName);
-
-    Task<AppResponse<List<R2File>>> GetFilesByUserNameAsync(string userName);
-
     Task<AppResponse<string>> GeneratePresignedUrl(string fileKey);
+
+    Task<AppResponse<Stream>> DownloadFile(string fileKey);
 
 }
