@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Models;
 using Carter;
+using EStore.Application.Constants;
 using EStore.Application.Factories;
 using EStore.Domain.Models.Base;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,8 @@ public class UploadFile : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/files", async ([FromForm] UploadFileRequest request, ISender sender) =>
+        // Free tier: 50 MB limit
+        app.MapPost("/files/free", async ([FromForm] UploadFileRequest request, ISender sender) =>
         {
             var command = CommandHandlerFactory.GetUploadFileCommand(request);
             var result = await sender.Send(command);
@@ -18,8 +20,38 @@ public class UploadFile : ICarterModule
         })
         .Accepts<IFormFile>("multipart/form-data")
         .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
-        .WithName("UploadFile")
+        .WithName("UploadFileFree")
         .WithTags("UploadFile")
-        .DisableAntiforgery();
+        .DisableAntiforgery()
+        .RequireAuthorization("FreeTierFileSizeLimit"); // 20 MB
+
+        // Pro tier: 2 GB limit
+        app.MapPost("/files/pro", async ([FromForm] UploadFileRequest request, ISender sender) =>
+        {
+            var command = CommandHandlerFactory.GetUploadFileCommand(request);
+            var result = await sender.Send(command);
+            return Results.Ok(result);
+        })
+        .Accepts<IFormFile>("multipart/form-data")
+        .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
+        .WithName("UploadFilePro")
+        .WithTags("UploadFile")
+        .DisableAntiforgery()
+        .RequireAuthorization("RequirePro", "ProTierFileSizeLimit"); // 2 GB
+
+        // Plus tier: 5 GB limit
+        app.MapPost("/files/plus", async ([FromForm] UploadFileRequest request, ISender sender) =>
+        {
+            var command = CommandHandlerFactory.GetUploadFileCommand(request);
+            var result = await sender.Send(command);
+            return Results.Ok(result);
+        })
+        .Accepts<IFormFile>("multipart/form-data")
+        .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
+        .WithName("UploadFilePlus")
+        .WithTags("UploadFile")
+        .DisableAntiforgery()
+        .RequireAuthorization("RequirePlus")
+        .WithMetadata(new RequestFormLimitsAttribute { MultipartBodyLengthLimit = FileSizeLimits.PlusTierLimit }); // 5 GB
     }
 }

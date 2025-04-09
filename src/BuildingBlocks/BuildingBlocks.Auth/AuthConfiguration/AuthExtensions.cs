@@ -37,23 +37,6 @@ public static class EStoreExtensions
             });
         });
 
-        services.AddAuthorizationBuilder()
-            .AddPolicy("RequireProOrAbove", policy =>
-            {
-                policy.RequireAssertion(context =>
-                {
-                    return context.User.HasClaim(ClaimNames.AccountType, AccountType.Pro.ToString()) ||
-                           context.User.HasClaim(ClaimNames.AccountType, AccountType.Plus.ToString());
-                });
-            })
-            .AddPolicy("RequirePlus", policy =>
-            {
-                policy.RequireAssertion(context =>
-                {
-                    return context.User.HasClaim(ClaimNames.AccountType, AccountType.Plus.ToString());
-                });
-            });
-
         services.AddSingleton(jwtSettings);
         
         return services;

@@ -7,6 +7,10 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using FluentValidation;
+using EStore.Api.Middlewares;
+using EStore.Application.Constants;
+using Microsoft.AspNetCore.Authorization;
+using BuildingBlocks.Auth.Models;
 
 namespace EStore.Api;
 
@@ -62,11 +66,41 @@ public static class DependencyInjection
 
         return services;
     }
+
+
+    public static IServiceCollection AddAuthorizationHandlers(this IServiceCollection services)
+    {
+        services.AddAuthorizationBuilder()
+            .AddPolicy("FreeTierFileSizeLimit", policy =>
+                policy.Requirements.Add(new FileSizeLimitRequirement(FileSizeLimits.FreeTierLimit)))
+            .AddPolicy("ProTierFileSizeLimit", policy =>
+                policy.Requirements.Add(new FileSizeLimitRequirement(FileSizeLimits.ProTierLimit)))
+            .AddPolicy("PlusTierFileSizeLimit", policy =>
+                policy.Requirements.Add(new FileSizeLimitRequirement(FileSizeLimits.PlusTierLimit)));
+
+        services.AddAuthorizationBuilder()
+            .AddPolicy("RequirePro", policy =>
+            {
+                policy.Requirements.Add(new AccountRequirement(AccountType.Pro.ToString()));
+            })
+            .AddPolicy("RequirePlus", policy =>
+            {
+                policy.Requirements.Add(new AccountRequirement(AccountType.Plus.ToString()));
+            });
+
+        services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        services.AddSingleton<IAuthorizationHandler, FileSizeLimitAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationHandler, AccountAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationMiddlewareResultHandler>();
+        return services;
+    }
+    
     public static WebApplication UseEStoreApiServices(this WebApplication app)
     {
+
+        app.UseExceptionHandler(opts => {});
         app.UseJwtServices();
         app.MapCarter();
-        app.UseExceptionHandler(opts => { });
         app.UseHealthChecks("/health", new HealthCheckOptions()
         {
             ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse

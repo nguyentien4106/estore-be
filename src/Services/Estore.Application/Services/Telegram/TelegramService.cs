@@ -87,18 +87,19 @@ public class TelegramService : ITelegramService
     public async Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId)
     {
         var file = command.File;
-        using var fileStream = FileHelper.GetFileStream(file);
-        
+        using var fileStream = FileHelper.GetMemoryStream(file);
         var args = new UploadFileHandlerArgs
         {
             Client = _client,
             FileStream = fileStream,
             Caption = file.FileName,
             FileName = file.FileName,
-            ContentType = file.ContentType
+            ContentType = file.ContentType,
+            ContentLength = file.Length
         };
 
         return await UploadFileToStrorageAsync(args, userId);
+        
     }
 
     public async Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileHandlerArgs args, string userId)
@@ -127,7 +128,7 @@ public class TelegramService : ITelegramService
         var teleFile = new TeleFileEntity
         {
             FileName = args.FileName,
-            FileSize = args.FileStream.Length,
+            FileSize = args.ContentLength,
             FileType = FileHelper.DetermineFileType(args.FileName),
             Extension = Path.GetExtension(args.FileName).TrimStart('.'),
             UserId = userId,

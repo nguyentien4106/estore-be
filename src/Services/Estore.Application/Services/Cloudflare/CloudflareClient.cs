@@ -40,7 +40,7 @@ public class CloudflareClient : ICloudflareClient
         {
             BucketName = _bucketName,
             Key = R2Helper.GetR2FileKey(userName, fileName),
-            InputStream = FileHelper.GetFileStream(file),
+            InputStream = FileHelper.GetMemoryStream(file),
             ContentType = file.ContentType,
             DisablePayloadSigning = true,
         };

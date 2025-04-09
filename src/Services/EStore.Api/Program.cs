@@ -1,5 +1,6 @@
 using EStore.Api;
 using EStore.Application;
+using EStore.Application.Constants;
 using EStore.Infrastructure;
 using EStore.Infrastructure.Data.Extensions;
 using Microsoft.AspNetCore.Http.Features;
@@ -14,14 +15,14 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.Configure<FormOptions>(options =>
 {
     options.ValueLengthLimit = int.MaxValue;
-    options.MultipartBodyLengthLimit = long.MaxValue; // Important
+    options.MultipartBodyLengthLimit = FileSizeLimits.PlusTierLimit; // Set to the highest limit (5 GB)
 });
 
 builder.Services
     .AddEStoreServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
     .AddApplicationServices(builder.Configuration)
-    ;
+    .AddAuthorizationHandlers();
 
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

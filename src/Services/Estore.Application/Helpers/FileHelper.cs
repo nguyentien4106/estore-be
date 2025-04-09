@@ -131,7 +131,7 @@ public static class FileHelper
     /// </summary>
     /// <param name="file">The file to get the stream from</param>
     /// <returns>The stream of the file</returns>
-    public static Stream GetFileStream(IFormFile file)
+    public static Stream GetMemoryStream(IFormFile file)
     {
         var stream = new MemoryStream();
         file.CopyTo(stream);
@@ -139,20 +139,15 @@ public static class FileHelper
         return stream;
     }
 
-    public static byte[] GetFileBytes(IFormFile file)
+    public static Stream GetFileStream(IFormFile file)
     {
-        using var stream = GetFileStream(file);
-        var memoryStream = stream as MemoryStream;
-        return memoryStream.ToArray();
-    }   
+        return file.OpenReadStream();
+    }
+
 
     public static string GetFileExtension(string fileName)
     {
         return Path.GetExtension(fileName).TrimStart('.');
     }
 
-    public static string CreateFilePathForDownload(string fileName)
-    {
-        return Path.Combine(Directory.GetCurrentDirectory(), "Downloads", fileName);
-    }
 } 

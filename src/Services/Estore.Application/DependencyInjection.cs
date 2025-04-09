@@ -6,6 +6,7 @@ using Microsoft.FeatureManagement;
 using EStore.Application.Services.Cloudflare;
 using EStore.Application.Services.Email;
 using EStore.Application.Services.Telegram;
+using EStore.Application.Constants;
 
 namespace EStore.Application;
 
@@ -43,4 +44,5 @@ public static class DependencyInjection
 
         return services;
     }
+
 }
