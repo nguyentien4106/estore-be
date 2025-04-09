@@ -27,4 +27,15 @@ public static class Constants
 public static class ClaimNames
 {
     public static string UserName = "userName";
+
+    public static string AccountType = "accountType";
+
+    public static string Email = "email";
+
+    public static string UserId = "userId";
+
+    public static string FirstName = "firstName";
+
+    public static string LastName = "lastName";
 }
+

@@ -11,8 +11,6 @@ namespace EStore.Api.Endpoints.Files.Commands;
 
 public class UploadLargeFile : ICarterModule 
 {
-    private static readonly FormOptions _defaultFormOptions = new FormOptions();
-
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPost("/files/large", async (HttpRequest request, HttpResponse response, ISender sender) =>
@@ -24,7 +22,8 @@ public class UploadLargeFile : ICarterModule
         .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
         .WithName("UploadLargeFile")
         .WithTags("UploadLargeFile")
-        .DisableAntiforgery();
+        .DisableAntiforgery()
+        .RequireAuthorization("RequireProOrAbove");
     }
 
     

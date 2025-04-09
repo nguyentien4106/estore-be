@@ -1,13 +1,11 @@
 using EStore.Domain.Models;
 using EStore.Infrastructure.Data;
 using BuildingBlocks.Auth.AuthConfiguration;
-using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 
 namespace EStore.Api;

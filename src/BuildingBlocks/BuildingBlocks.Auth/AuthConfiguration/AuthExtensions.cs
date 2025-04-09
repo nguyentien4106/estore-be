@@ -1,3 +1,5 @@
+using BuildingBlocks.Auth.Constants;
+using BuildingBlocks.Auth.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +37,23 @@ public static class EStoreExtensions
             });
         });
 
-        services.AddAuthorization();
+        services.AddAuthorizationBuilder()
+            .AddPolicy("RequireProOrAbove", policy =>
+            {
+                policy.RequireAssertion(context =>
+                {
+                    return context.User.HasClaim(ClaimNames.AccountType, AccountType.Pro.ToString()) ||
+                           context.User.HasClaim(ClaimNames.AccountType, AccountType.Plus.ToString());
+                });
+            })
+            .AddPolicy("RequirePlus", policy =>
+            {
+                policy.RequireAssertion(context =>
+                {
+                    return context.User.HasClaim(ClaimNames.AccountType, AccountType.Plus.ToString());
+                });
+            });
+
         services.AddSingleton(jwtSettings);
         
         return services;

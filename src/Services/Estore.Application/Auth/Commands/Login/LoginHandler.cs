@@ -1,7 +1,5 @@
 using EStore.Application.Helpers;
-using EStore.Domain.Models;
 using BuildingBlocks.Auth.Models;
-using EStore.Application.Data;
 
 namespace EStore.Application.Auth.Commands.Auth.Login;
 

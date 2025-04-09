@@ -1,12 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using EStore.Domain.Models;
 using BuildingBlocks.Auth.Models;
 using Microsoft.IdentityModel.Tokens;
-using EStore.Application.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using BuildingBlocks.Auth.Constants;
 
 namespace EStore.Application.Helpers;
 
@@ -23,9 +21,12 @@ public static class TokenUtils
         
         var userClaims = new List<Claim>
         {
-            new("userId", user.Id.ToString()),
-            new ("userName", user.UserName ?? ""),
-            new("email", user.Email ?? "")
+            new(ClaimNames.UserId, user.Id.ToString()),
+            new(ClaimNames.UserName, user.UserName ?? ""),
+            new(ClaimNames.Email, user.Email ?? ""),
+            new(ClaimNames.AccountType, user.AccountType.ToString()),
+            new(ClaimNames.FirstName, user.FirstName),
+            new(ClaimNames.LastName, user.LastName)
         };
         
         userClaims.AddRange(claims);

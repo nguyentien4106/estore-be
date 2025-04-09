@@ -15,8 +15,8 @@ public class RegisterAccountHandler(IEStoreDbContext dbContext, UserManager<User
             PhoneNumber = command.PhoneNumber,
             FirstName = command.FirstName,
             LastName = command.LastName,
-            
         };
+
         var result = await userManager.CreateAsync(newUser, command.Password);
         if (result.Succeeded)
         {
