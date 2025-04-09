@@ -15,8 +15,6 @@ public class UploadVideoFileHandler : IUploadFileHandler
                 mime_type = args.ContentType,
                 attributes = new[] {
                     new DocumentAttributeVideo {
-                        w = args.Width, 
-                        h = args.Height,
                         flags = DocumentAttributeVideo.Flags.supports_streaming,
                     },
                 },

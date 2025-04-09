@@ -11,9 +11,9 @@ namespace EStore.Application.Services.Telegram;
 
 public class TelegramService : ITelegramService
 {
-    private Client _client;
+    private Client? _client;
 
-    private ChatBase? _peer;
+    private readonly ChatBase? _peer;
     private readonly TelegramConfiguration _telegramConfiguration;
 
     public TelegramService(TelegramConfiguration telegramConfiguration)
@@ -22,6 +22,10 @@ public class TelegramService : ITelegramService
         var result = CreateAndConnect().GetAwaiter().GetResult();
         if(result){
             _peer = _client?.Messages_GetAllChats().Result.chats[_telegramConfiguration.ChannelId];
+        }
+
+        if(_client == null){
+            throw new InvalidOperationException("Failed to connect to Telegram");
         }
     }
 
@@ -63,8 +67,6 @@ public class TelegramService : ITelegramService
             FileStream = fileStream,
             Caption = file.FileName,
             FileName = file.FileName,
-            Width = command.Width,
-            Height = command.Height,
             ContentType = command.File.ContentType
         });
        
@@ -73,24 +75,24 @@ public class TelegramService : ITelegramService
 
         if (result.media != null)
         {
-            return CreateTeleFileLocationFromMedia(result.media, file, command.Width, command.Height, userId, messageId);
+            return CreateTeleFileLocationFromMedia(result.media, file, userId, messageId);
         }
 
         return AppResponse<TeleFileEntity>.Error("Failed to upload file");
     }
 
-    private AppResponse<TeleFileEntity> CreateTeleFileLocationFromMedia(MessageMedia media, IFormFile file, int width, int height, string userId, int messageId)
+    private static AppResponse<TeleFileEntity> CreateTeleFileLocationFromMedia(MessageMedia media, IFormFile file, string userId, int messageId)
     {
         var teleFile = CreateBaseTeleFileEntity(file, userId, messageId);
 
         if (media is MessageMediaPhoto mediaPhoto && mediaPhoto.photo is Photo photo)
         {
-            return HandlePhotoMedia(teleFile, photo, width, height);
+            return HandlePhotoMedia(teleFile, photo);
         }
 
         if (media is MessageMediaDocument mediaDocument && mediaDocument.document is Document document)
         {
-            return HandleDocumentMedia(teleFile, document, width, height);
+            return HandleDocumentMedia(teleFile, document);
         }
 
         return AppResponse<TeleFileEntity>.Error("Unsupported media type");
@@ -110,7 +112,7 @@ public class TelegramService : ITelegramService
         };
     }
 
-    private static AppResponse<TeleFileEntity> HandlePhotoMedia(TeleFileEntity teleFile, Photo photo, int width, int height)
+    private static AppResponse<TeleFileEntity> HandlePhotoMedia(TeleFileEntity teleFile, Photo photo)
     {
         var photoFileLocation = photo.ToFileLocation();
         var photoSize = photo.sizes.LastOrDefault();
@@ -120,14 +122,14 @@ public class TelegramService : ITelegramService
         teleFile.Flags = (uint)photo.flags;
         teleFile.FileReference = photoFileLocation.file_reference;
         teleFile.DcId = photo.dc_id;
-        teleFile.Width = photoSize?.Width ?? width;
-        teleFile.Height = photoSize?.Height ?? height;
+        teleFile.Width = photoSize?.Width ?? 0;
+        teleFile.Height = photoSize?.Height ?? 0;
         teleFile.Thumbnail = photoSize?.Type ?? "";
 
         return AppResponse<TeleFileEntity>.Success(teleFile);
     }
 
-    private static AppResponse<TeleFileEntity> HandleDocumentMedia(TeleFileEntity teleFile, Document document, int width, int height)
+    private static AppResponse<TeleFileEntity> HandleDocumentMedia(TeleFileEntity teleFile, Document document)
     {
         var documentFileLocation = document.ToFileLocation();
         var documentSize = document.LargestThumbSize;
@@ -137,8 +139,8 @@ public class TelegramService : ITelegramService
         teleFile.Flags = (uint)document.flags;
         teleFile.FileReference = documentFileLocation.file_reference;
         teleFile.DcId = document.dc_id;
-        teleFile.Width = documentSize?.Width ?? width;
-        teleFile.Height = documentSize?.Height ?? height;
+        teleFile.Width = documentSize?.Width ?? 0;
+        teleFile.Height = documentSize?.Height ?? 0;
         teleFile.Thumbnail = documentSize?.Type ?? "v";
 
         return AppResponse<TeleFileEntity>.Success(teleFile);

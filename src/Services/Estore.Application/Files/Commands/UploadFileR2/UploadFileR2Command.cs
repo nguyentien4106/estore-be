@@ -1,7 +1,7 @@
 ﻿using EStore.Domain.Models.Base;
 using Microsoft.AspNetCore.Http;
 
-namespace EStore.Application.Files.Commands.UploadFile;
+namespace EStore.Application.Files.Commands.UploadFileR2;
 
 public record UploadFileR2Command(IFormFile File, string UserName) : ICommand<AppResponse<FileEntity>>;
 

@@ -4,7 +4,7 @@ using EStore.Application.Services.Cloudflare;
 using EStore.Domain.Models.Base;
 using EStore.Domain.Extensions;
 
-namespace EStore.Application.Files.Commands.UploadFile;
+namespace EStore.Application.Files.Commands.UploadFileR2;
 
 public class UploadFileR2Handler(
     ICloudflareClient r2,

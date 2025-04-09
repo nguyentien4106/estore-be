@@ -12,7 +12,6 @@ public class UploadDocumentFileHandler : IUploadFileHandler
             var document = new InputMediaUploadedDocument {
                 file = documentUploaded, 
                 mime_type = args.ContentType,
-                
             };
 
             return document;

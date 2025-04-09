@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace EStore.Application.Files.Commands.UploadFileTelegram;
 
-public record UploadFileTelegramCommand(IFormFile File, string UserName, int Width, int Height) : ICommand<AppResponse<FileEntity>>;
+public record UploadFileTelegramCommand(IFormFile File, string UserName) : ICommand<AppResponse<FileEntity>>;
 
 public class UploadFileTelegramValidator : AbstractValidator<UploadFileTelegramCommand>
 {
