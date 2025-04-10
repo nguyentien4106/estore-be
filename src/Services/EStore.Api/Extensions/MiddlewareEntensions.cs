@@ -29,7 +29,7 @@ public static class MiddlewareExtensions
                 c.Value == AccountType.Free.ToString()
             ) && 
             context.Request.Path.StartsWithSegments("/files/download"), 
-            app => app.UseBandwidthThrottle(1024 * 1024) // 1MB/s limit
+            app => app.UseBandwidthThrottle(300 * 1024) // 300KB/s limit
         );
 
         app.MapCarter();
