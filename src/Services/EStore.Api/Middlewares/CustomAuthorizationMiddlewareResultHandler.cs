@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace EStore.Api.Middlewares;
@@ -11,9 +12,18 @@ public class CustomAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewa
 {
     private readonly AuthorizationMiddlewareResultHandler _defaultHandler = new();
     private readonly ILogger<CustomAuthorizationMiddlewareResultHandler> _logger;
-    public CustomAuthorizationMiddlewareResultHandler(ILogger<CustomAuthorizationMiddlewareResultHandler> logger, IHttpContextAccessor httpContextAccessor)
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
+
+    public CustomAuthorizationMiddlewareResultHandler(ILogger<CustomAuthorizationMiddlewareResultHandler> logger)
     {
         _logger = logger;
+        // Configure JsonSerializerOptions to use camelCase
+        _jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            // Optionally ignore null values
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
     }
 
     public async Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy, PolicyAuthorizationResult authorizeResult)
@@ -33,7 +43,7 @@ public class CustomAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewa
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 context.Response.ContentType = "application/json";
 
-                await context.Response.WriteAsync(JsonSerializer.Serialize(metadata));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(metadata, _jsonSerializerOptions));
                 return;
             }
 
@@ -44,7 +54,7 @@ public class CustomAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewa
 
             var fallbackResponse = AppResponse<string>.Error("Access denied.", "AUTHORIZATION_FAILED");
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(fallbackResponse));
+            await context.Response.WriteAsync(JsonSerializer.Serialize(fallbackResponse, _jsonSerializerOptions));
             return;
         }
 

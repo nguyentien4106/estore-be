@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace EStore.Application.Files.Commands.UploadFileR2;
 
-public record UploadFileR2Command(IFormFile File, string UserName) : ICommand<AppResponse<FileEntity>>;
+public record UploadFileR2Command(IFormFile File, string UserName) : ICommand<AppResponse<FileEntityResponse>>;
 
 public class UploadFileValidator : AbstractValidator<UploadFileR2Command>
 {

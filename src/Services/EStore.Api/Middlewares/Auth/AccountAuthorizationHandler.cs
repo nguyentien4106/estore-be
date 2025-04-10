@@ -3,7 +3,7 @@ using BuildingBlocks.Auth.Models;
 using BuildingBlocks.Models;
 using Microsoft.AspNetCore.Authorization;
 
-namespace EStore.Api.Middlewares;
+namespace EStore.Api.Middlewares.Auth;
 
 public class AccountAuthorizationHandler(IHttpContextAccessor httpContextAccessor) : AuthorizationHandler<AccountRequirement>
 {

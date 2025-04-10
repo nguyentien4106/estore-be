@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace EStore.Api.Middlewares;
+namespace EStore.Api.Middlewares.Auth;
 
 public class AccountRequirement(string accountType) : IAuthorizationRequirement
 {

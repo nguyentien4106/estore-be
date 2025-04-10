@@ -10,7 +10,7 @@ namespace EStore.Application.Factories;
 
 public class CommandHandlerFactory
 {
-    public static ICommand<AppResponse<FileEntity>> GetUploadFileCommand(UploadFileRequest request)
+    public static ICommand<AppResponse<FileEntityResponse>> GetUploadFileCommand(UploadFileRequest request)
     {
         return request.StorageSource switch
         {

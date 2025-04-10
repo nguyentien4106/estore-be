@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
-namespace EStore.Api.Middlewares;
+namespace EStore.Api.Middlewares.Files;
 
 public class AuthorizationFailureMetadata
 {

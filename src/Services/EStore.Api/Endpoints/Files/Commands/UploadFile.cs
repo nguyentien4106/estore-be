@@ -11,7 +11,7 @@ public class UploadFile : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        // Free tier: 50 MB limit
+        // Free tier: 20 MB limit
         app.MapPost("/files/free", async ([FromForm] UploadFileRequest request, ISender sender) =>
         {
             var command = CommandHandlerFactory.GetUploadFileCommand(request);

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace EStore.Api.Middlewares;
+namespace EStore.Api.Middlewares.Files;
 public class FileSizeLimitRequirement : IAuthorizationRequirement
 {
     public long MaxFileSize { get; }
