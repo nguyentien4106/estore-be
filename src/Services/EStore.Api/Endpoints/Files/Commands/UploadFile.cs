@@ -1,8 +1,7 @@
-﻿using BuildingBlocks.Models;
-using Carter;
+﻿using EStore.Application.Commands.Files.UploadFile;
 using EStore.Application.Constants;
-using EStore.Application.Factories;
-using EStore.Domain.Models.Base;
+using EStore.Application.DesignPatterns.Factories;
+using EStore.Application.Models.Files;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;
@@ -19,7 +18,7 @@ public class UploadFile : ICarterModule
             return Results.Ok(result);
         })
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
+        .Produces<AppResponse<FileEntityResult>>(StatusCodes.Status201Created)
         .WithName("UploadFileFree")
         .WithTags("UploadFile")
         .DisableAntiforgery()
@@ -33,7 +32,7 @@ public class UploadFile : ICarterModule
             return Results.Ok(result);
         })
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
+        .Produces<AppResponse<FileEntityResult>>(StatusCodes.Status201Created)
         .WithName("UploadFilePro")
         .WithTags("UploadFile")
         .DisableAntiforgery()
@@ -47,7 +46,7 @@ public class UploadFile : ICarterModule
             return Results.Ok(result);
         })
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<AppResponse<FileEntityResponse>>(StatusCodes.Status201Created)
+        .Produces<AppResponse<FileEntityResult>>(StatusCodes.Status201Created)
         .WithName("UploadFilePlus")
         .WithTags("UploadFile")
         .DisableAntiforgery()

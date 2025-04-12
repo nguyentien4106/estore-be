@@ -12,13 +12,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="Downloads\**" />
-      <Content Remove="Downloads\**" />
-      <EmbeddedResource Remove="Downloads\**" />
-      <None Remove="Downloads\**" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>

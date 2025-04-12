@@ -1,8 +1,7 @@
 ﻿using Carter;
-using EStore.Application.Factories;
-using EStore.Domain.Enums.Files;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
+using EStore.Application.Commands.Files.DownloadFile;
+using EStore.Application.DesignPatterns.Factories;
 
 namespace EStore.Api.Endpoints.Files.Commands;
 

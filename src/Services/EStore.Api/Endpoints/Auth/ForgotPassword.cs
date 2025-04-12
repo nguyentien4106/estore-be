@@ -1,18 +1,19 @@
-using EStore.Application.Auth.Commands.Auth.ForgotPassword;
 using BuildingBlocks.Models;
 using Carter;
+using EStore.Application.Commands.Auth.ForgotPassword;
+using Mapster;
 
-namespace EStore.Api.Endpoints;
+namespace EStore.Api.Endpoints.Auth;
 
 public class ForgotPassword : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/auth/forgot-password", async (string email, ISender sender) =>
+        app.MapPost("/auth/forgot-password", async (ForgotPasswordRequest request, ISender sender) =>
         {
-            var command = new ForgotPasswordCommand(email);
+            var command = request.Adapt<ForgotPasswordCommand>();
             var result = await sender.Send(command);
-
+            
             return Results.Ok(result);
         })
             .WithName("forgot-password")

@@ -1,7 +1,6 @@
-﻿using BuildingBlocks.Models;
-using BuildingBlocks.Pagination;
-using Carter;
-using EStore.Application.Files.Queries.GetFilesByUserName;
+﻿using BuildingBlocks.Pagination;
+using EStore.Application.Queries.Files.GetFilesByUserName;
+using EStore.Application.Models.Files;
 
 namespace EStore.Api.Endpoints.Files.Queries;
 
@@ -16,7 +15,7 @@ public class GetFilesByUserName : ICarterModule
 
             return Results.Ok(result);
         })
-        .Produces<AppResponse<PaginatedResult<FileEntityResponse>>>(StatusCodes.Status200OK)
+        .Produces<AppResponse<PaginatedResult<FileEntityResult>>>(StatusCodes.Status200OK)
         .WithName("GetFilesByUserName")
         .WithTags("GetFilesByUserName")
         .RequireAuthorization();

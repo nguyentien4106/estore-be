@@ -1,10 +1,11 @@
-using EStore.Application.Auth.Commands.Auth.Login;
 using BuildingBlocks.Models;
 using Carter;
+using EStore.Application.Commands.Auth.Login;
+using Estore.Application.Models.Dtos;
 using Mapster;
-using Microsoft.AspNetCore.Identity.Data;
+using LoginRequest = Microsoft.AspNetCore.Identity.Data.LoginRequest;
 
-namespace EStore.Api.Endpoints;
+namespace EStore.Api.Endpoints.Auth;
 
 public class Login : ICarterModule
 {

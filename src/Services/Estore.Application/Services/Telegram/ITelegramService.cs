@@ -1,5 +1,5 @@
-﻿using EStore.Application.Files.Commands.UploadFileTelegram;
-using Microsoft.AspNetCore.Http;
+﻿using EStore.Application.Commands.Files.UploadFile;
+using EStore.Application.Models.Files;
 
 namespace EStore.Application.Services.Telegram;
 

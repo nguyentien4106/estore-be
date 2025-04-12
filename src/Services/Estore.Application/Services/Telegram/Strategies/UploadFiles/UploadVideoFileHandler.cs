@@ -1,4 +1,4 @@
-using EStore.Application.Helpers;
+using EStore.Application.Models.Files;
 using TL;
 
 namespace EStore.Application.Services.Telegram.Strategies.UploadFiles;

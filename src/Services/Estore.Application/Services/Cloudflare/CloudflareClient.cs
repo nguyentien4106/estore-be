@@ -6,7 +6,6 @@ using EStore.Domain.Models.Base;
 using EStore.Application.Helpers;
 using System.Net;
 using Microsoft.AspNetCore.Http;
-using System.IO;
 
 namespace EStore.Application.Services.Cloudflare;
 

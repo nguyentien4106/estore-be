@@ -2,9 +2,6 @@ using EStore.Domain.Models;
 using EStore.Infrastructure.Data;
 using BuildingBlocks.Auth.AuthConfiguration;
 using BuildingBlocks.Exceptions.Handler;
-using Carter;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using FluentValidation;
 using EStore.Api.Middlewares;
@@ -13,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using BuildingBlocks.Auth.Models;
 using EStore.Api.Middlewares.Files;
 using EStore.Api.Middlewares.Auth;
-using EStore.Api.Extensions;
 using Microsoft.AspNetCore.Http.Features;
 
 namespace EStore.Api;
@@ -40,10 +36,8 @@ public static class DependencyInjection
     {
         services.Configure<FormOptions>(options =>
         {
-            // Set form value length to maximum
             options.ValueLengthLimit = int.MaxValue;
             
-            // Set multipart body length to Plus tier limit (5 GB)
             options.MultipartBodyLengthLimit = FileSizeLimits.PlusTierLimit;
         });
 
@@ -120,5 +114,14 @@ public static class DependencyInjection
 
         return services;
     }
-    
+
+    // private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     services.AddScoped<IEmailSender<User>, EmailService>();
+    //     services.AddScoped<ICloudflareClient, CloudflareClient>();
+    //     services.AddScoped<ITelegramService, TelegramService>();
+    //     services.AddScoped<VNPayService>();
+
+    //     return services;
+    // }
 }

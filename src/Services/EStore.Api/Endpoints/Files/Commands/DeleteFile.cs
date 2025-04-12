@@ -1,6 +1,5 @@
-﻿using BuildingBlocks.Models;
-using Carter;
-using EStore.Application.Factories;
+﻿using EStore.Application.Commands.Files.DeleteFile;
+using EStore.Application.DesignPatterns.Factories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;

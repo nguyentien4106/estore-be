@@ -6,7 +6,8 @@ using Microsoft.FeatureManagement;
 using EStore.Application.Services.Cloudflare;
 using EStore.Application.Services.Email;
 using EStore.Application.Services.Telegram;
-using EStore.Application.Constants;
+using EStore.Application.Models.Configuration;
+using EStore.Application.Services.Payment;
 
 namespace EStore.Application;
 
@@ -21,15 +22,7 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
         
-        var sendGridSettings = configuration.GetSection("SendGridSettings").Get<SendGridSettings>() ?? throw new InvalidOperationException("SendGridSettings not found.");
-        services.AddSingleton(sendGridSettings);
-
-        var cloudflareConfiguration = configuration.GetSection("CloudflareConfiguration").Get<CloudflareConfiguration>() ?? throw new InvalidOperationException("Cloudflare Configuration not found.");
-        services.AddSingleton(cloudflareConfiguration);
-
-        var telegramConfiguration = configuration.GetSection("TelegramConfiguration").Get<TelegramConfiguration>() ?? throw new InvalidOperationException("Cloudflare Configuration not found.");
-        services.AddSingleton(telegramConfiguration);
-
+        services.AddConfigurationObjects(configuration);
         services.AddFeatureManagement();
         services.AddServices();
         
@@ -41,8 +34,26 @@ public static class DependencyInjection
         services.AddTransient<IEmailSender<User>, EmailService>();
         services.AddTransient<ICloudflareClient, CloudflareClient>();
         services.AddSingleton<ITelegramService, TelegramService>();
+        services.AddSingleton<IVnPayService, VNPayService>();
 
         return services;
     }
 
+    public static IServiceCollection AddConfigurationObjects(this IServiceCollection services, IConfiguration configuration)
+    {
+                // Register configuration instances for DI
+        services.AddSingleton(configuration.GetSection("SendGridSettings")
+            .Get<SendGridConfiguration>() ?? throw new InvalidOperationException("SendGridSettings not found."));
+        
+        services.AddSingleton(configuration.GetSection("CloudflareConfiguration")
+            .Get<CloudflareConfiguration>() ?? throw new InvalidOperationException("CloudflareConfiguration not found."));
+        
+        services.AddSingleton(configuration.GetSection("TelegramConfiguration")
+            .Get<TelegramConfiguration>() ?? throw new InvalidOperationException("TelegramConfiguration not found."));
+
+        services.AddSingleton(configuration.GetSection("VNPayConfiguration")
+            .Get<VNPayConfiguration>() ?? throw new InvalidOperationException("VNPayConfiguration not found."));
+        
+        return services;
+    }
 }

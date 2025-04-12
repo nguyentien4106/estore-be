@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Options;
+﻿using EStore.Application.Models.Configuration;
 using SendGrid.Helpers.Mail;
 using SendGrid;
-using EStore.Domain.Models;
 
 namespace EStore.Application.Services.Email;
 
-public class EmailService(SendGridSettings settings) : IEmailSender<User>
+public class EmailService(SendGridConfiguration settings) : IEmailSender<User>
 {
 
     public async Task SendConfirmationLinkAsync(User user, string email, string confirmationLink)

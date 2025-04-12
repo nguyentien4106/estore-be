@@ -1,4 +1,4 @@
-using Estore.Application.Dtos.Files;
+using Estore.Application.Models;
 
 namespace EStore.Api.Middlewares.Files;
 

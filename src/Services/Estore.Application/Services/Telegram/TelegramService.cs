@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using TdLib;
-using Microsoft.AspNetCore.Http;
+﻿using EStore.Application.Commands.Files.UploadFile;
+using Microsoft.Extensions.Logging;
 using EStore.Application.Helpers;
 using EStore.Application.Services.Files;
 using WTelegram;
 using TL;
-using EStore.Application.Files.Commands.UploadFileTelegram;
+using EStore.Application.Models.Files;
 
 namespace EStore.Application.Services.Telegram;
 
