@@ -17,8 +17,8 @@ public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<Use
         var pageIndex = query.PaginationRequest.PageIndex;
         var pageSize = query.PaginationRequest.PageSize;
 
-        var r2Count = await context.R2FileEntities.LongCountAsync(cancellationToken);
-        var teleCount = await context.TeleFileEntities.LongCountAsync(cancellationToken);
+        var r2Count = await context.R2FileEntities.Where(item => item.UserId == user.Id).LongCountAsync(cancellationToken);
+        var teleCount = await context.TeleFileEntities.Where(item => item.UserId == user.Id).LongCountAsync(cancellationToken);
 
         var telegramFiles = await context.TeleFileEntities
                                 .Where(item => item.UserId == user.Id)

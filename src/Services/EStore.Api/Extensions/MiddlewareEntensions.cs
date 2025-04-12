@@ -1,4 +1,5 @@
 using BuildingBlocks.Auth.AuthConfiguration;
+using BuildingBlocks.Auth.Constants;
 using BuildingBlocks.Auth.Models;
 using Carter;
 using EStore.Api.Middlewares.Files;
@@ -22,14 +23,13 @@ public static class MiddlewareExtensions
         app.UseExceptionHandler(opts => {});
         app.UseJwtServices();
 
-        // Add bandwidth throttling for free tier downloads
-        app.UseWhen(
-            context => context.User.HasClaim(
-                c => c.Type == "AccountType" && 
-                c.Value == AccountType.Free.ToString()
-            ) && 
-            context.Request.Path.StartsWithSegments("/files/download"), 
-            app => app.UseBandwidthThrottle(300 * 1024) // 300KB/s limit
+        app.UseWhen(context => {
+                return context.User.HasClaim(
+                    c => c.Type == ClaimNames.AccountType && 
+                    c.Value == AccountType.Free.ToString()
+                ) && context.Request.Path.StartsWithSegments("/files/download");
+            },
+            app => app.UseBandwidthThrottle(FileSizeLimits.BandwidthLimit) // 500KB/s limit
         );
 
         app.MapCarter();
