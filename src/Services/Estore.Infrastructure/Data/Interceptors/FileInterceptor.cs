@@ -89,7 +89,7 @@ namespace Estore.Infrastructure.Data.Interceptors
             {
                 // Update existing storage usage
                 storageUsage.UsedSize += fileSize;
-                storageUsage.LastModified = DateTime.Now;
+                storageUsage.LastModified = DateTime.UtcNow;
                 dbContext.StorageUsages.Update(storageUsage);
             }
         }

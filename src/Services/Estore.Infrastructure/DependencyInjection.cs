@@ -27,7 +27,7 @@ public static class DependencyInjection
 
         services.AddTransient<IEStoreDbContext>(provider => provider.GetRequiredService<EStoreDbContext>());
 
-
         return services;
     }
+
 }

@@ -29,6 +29,8 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
 
     public DbSet<Payment> Payments { get; set; }
     
+    public DbSet<Subscription> Subscriptions { get; set; }
+    
     public DatabaseFacade Database => base.Database;
 
     protected override void OnModelCreating(ModelBuilder builder)

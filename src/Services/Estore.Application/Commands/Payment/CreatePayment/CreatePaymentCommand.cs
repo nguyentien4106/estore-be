@@ -1,4 +1,5 @@
 using BuildingBlocks.CQRS;
+using EStore.Domain.Enums;
 
 namespace EStore.Application.Commands.Payment.CreatePayment;
 
@@ -9,5 +10,7 @@ public record CreatePaymentCommand(
     string BankCode,
     string Language,
     string UserId,
+    SubscriptionType SubscriptionType,
     string IpAddress,
-    long PaymentId) : ICommand<AppResponse<string>>; 
+    long PaymentId
+    ) : ICommand<AppResponse<string>>; 

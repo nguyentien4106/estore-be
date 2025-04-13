@@ -1,4 +1,3 @@
-using EStore.Domain.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace EStore.Application.Data;
@@ -16,6 +15,8 @@ public interface IEStoreDbContext
     public DbSet<Order> Orders { get; }
 
     public DbSet<Payment> Payments { get; }
+
+    public DbSet<Subscription> Subscriptions { get; }
 
     public DatabaseFacade Database { get; }
     

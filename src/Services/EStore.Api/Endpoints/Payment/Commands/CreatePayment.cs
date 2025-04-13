@@ -1,4 +1,5 @@
 using EStore.Application.Commands.Payment.CreatePayment;
+using EStore.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Payment.Commands;
@@ -16,8 +17,9 @@ public class CreatePayment : ICarterModule
                 request.BankCode,
                 request.Language,
                 request.UserId,
+                request.SubscriptionType == "Monthly" ? SubscriptionType.Monthly : SubscriptionType.Yearly,
                 httpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1",
-                DateTime.Now.Ticks
+                DateTime.UtcNow.Ticks
             );
 
             var result = await sender.Send(command);

@@ -35,7 +35,7 @@ public static class TokenUtils
             issuer: appSettings.Issuer,
             audience: appSettings.Audience,
             claims: userClaims,
-            expires: DateTime.Now.AddMinutes(appSettings.AccessTokenExpirationMinutes),
+            expires: DateTime.UtcNow.AddMinutes(appSettings.AccessTokenExpirationMinutes),
             signingCredentials: signInCredentials
         );
         
@@ -46,7 +46,7 @@ public static class TokenUtils
     {
         var refreshToken = GenerateRefreshToken();
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiry = DateTime.Now.AddDays(jwtSettings.RefreshTokenExpirationDays);
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenExpirationDays);
         await context.CommitAsync();
 
         return refreshToken;
@@ -69,6 +69,6 @@ public static class TokenUtils
 
     public static bool IsRefreshTokenValid(DateTime? refreshTokenExpiry)
     {
-        return refreshTokenExpiry >= DateTime.Now;
+        return refreshTokenExpiry >= DateTime.UtcNow;
     }
 }

@@ -16,7 +16,7 @@ public class GetUserStorage : ICarterModule
         })
         .WithName("GetUserStorage")
         .WithTags("Dashboard")
-        //.RequireAuthorization()
+        .RequireAuthorization()
         .Produces<AppResponse<UserStorageDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithDescription("Get user's storage usage information")

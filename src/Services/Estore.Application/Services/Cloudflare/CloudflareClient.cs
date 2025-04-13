@@ -88,7 +88,7 @@ public class CloudflareClient : ICloudflareClient
                 BucketName = _cloudflareConfiguration.BucketName,
                 Key = fileKey,
                 Verb = HttpVerb.GET,
-                Expires = DateTime.Now.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(7),
             };
             var url = await _s3Client.GetPreSignedURLAsync(presign);
                 

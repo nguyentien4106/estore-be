@@ -32,7 +32,7 @@ public class VNPayService : IVnPayService
                 Description = request.OrderInfo,
                 IpAddress = request.IpAddress,
                 BankCode = BankCode.ANY,
-                CreatedDate = DateTime.Now,
+                CreatedDate = DateTime.UtcNow,
                 Currency = Currency.VND,
                 Language = DisplayLanguage.English,
             };

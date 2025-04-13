@@ -4,7 +4,7 @@ public record IntegrationEvent
 {
     public Guid Id => Guid.NewGuid();
     
-    public DateTime OccurredOn => DateTime.Now;
+    public DateTime OccurredOn => DateTime.UtcNow;
 
     public string EventType => GetType().AssemblyQualifiedName;
 }

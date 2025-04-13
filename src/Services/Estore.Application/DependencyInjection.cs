@@ -7,6 +7,7 @@ using EStore.Application.Services.Cloudflare;
 using EStore.Application.Services.Email;
 using EStore.Application.Services.Telegram;
 using EStore.Application.Models.Configuration;
+using EStore.Application.Services;
 using EStore.Application.Services.Payment;
 
 namespace EStore.Application;
@@ -25,11 +26,12 @@ public static class DependencyInjection
         services.AddConfigurationObjects(configuration);
         services.AddFeatureManagement();
         services.AddServices();
+        services.AddSubscriptionMonitorService();
         
         return services;
     }
 
-    public static IServiceCollection AddServices(this IServiceCollection services)
+    private static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddTransient<IEmailSender<User>, EmailService>();
         services.AddTransient<ICloudflareClient, CloudflareClient>();
@@ -53,6 +55,13 @@ public static class DependencyInjection
 
         services.AddSingleton(configuration.GetSection("VNPayConfiguration")
             .Get<VNPayConfiguration>() ?? throw new InvalidOperationException("VNPayConfiguration not found."));
+        
+        return services;
+    }
+
+    private static IServiceCollection AddSubscriptionMonitorService(this IServiceCollection services)
+    {
+        services.AddHostedService<SubscriptionMonitorService>();
         
         return services;
     }

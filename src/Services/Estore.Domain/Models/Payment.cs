@@ -13,6 +13,7 @@ public class Payment : Entity<long>
     public PaymentMethod Method { get; set; } = PaymentMethod.VNPay;
     public string OrderType { get; set; } = string.Empty;
     public bool Success { get; set; } = false;
+    public SubscriptionType SubscriptionType { get; set; } = SubscriptionType.Monthly;
     
     // VNPay Payment Information
     public string? VnpIpAddress { get; set; }
