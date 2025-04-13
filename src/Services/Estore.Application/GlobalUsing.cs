@@ -1,13 +1,12 @@
 global using Microsoft.AspNetCore.Identity;
-global using EStore.Domain.ValueObjects;
 global using BuildingBlocks.CQRS;
 global using BuildingBlocks.Models;
 global using FluentValidation;
 global using EStore.Domain.Enums.Files;
-global using EStore.Application.Dtos.Files;
 global using EStore.Domain.Models;
 global using Microsoft.EntityFrameworkCore;
 global using EStore.Application.Data;
 global using BuildingBlocks.Models;
 global using EStore.Domain.Enums.Files;
-global using Mapster;
+global using EStore.Domain.Models;
+global using EStore.Application.Models.Configuration;

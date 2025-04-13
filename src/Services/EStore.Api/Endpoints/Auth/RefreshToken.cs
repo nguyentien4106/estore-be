@@ -1,10 +1,10 @@
-using EStore.Application.Auth.Commands.Auth.RefreshToken;
 using BuildingBlocks.Models;
 using Carter;
-using Microsoft.AspNetCore.Mvc;
+using EStore.Application.Commands.Auth.RefreshToken;
+using Estore.Application.Models.Dtos;
 using Mapster;
 
-namespace EStore.Api.Endpoints;
+namespace EStore.Api.Endpoints.Auth;
 
 public class RefreshToken : ICarterModule
 {

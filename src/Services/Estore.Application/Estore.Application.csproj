@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
+      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
       <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
       <ProjectReference Include="..\EStore.Domain\EStore.Domain.csproj" />
     </ItemGroup>
@@ -26,6 +26,7 @@
       <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
       <PackageReference Include="TDLib" Version="1.8.45" />
       <PackageReference Include="tdlib.native" Version="1.8.45" />
+      <PackageReference Include="VNPAY.NET" Version="8.5.0" />
       <PackageReference Include="WTelegramClient" Version="4.3.2" />
     </ItemGroup>
 

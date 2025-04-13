@@ -1,4 +1,4 @@
-using EStore.Application.Helpers;
+using EStore.Application.Models.Files;
 using TL;
 
 namespace EStore.Application.Services.Telegram.Strategies.UploadFiles;
@@ -8,22 +8,22 @@ public class UploadVideoFileHandler : IUploadFileHandler
     public async Task<InputMedia> UploadFileAsync(UploadFileHandlerArgs args)
     {
         try{
-            var videoUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName);
+            using(args.FileStream){
+                var videoUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName);
 
-            var video = new InputMediaUploadedDocument {
-                file = videoUploaded, 
-                mime_type = args.ContentType,
-                attributes = new[] {
-                    new DocumentAttributeVideo {
-                        w = args.Width, 
-                        h = args.Height,
-                        flags = DocumentAttributeVideo.Flags.supports_streaming,
+                var video = new InputMediaUploadedDocument {
+                    file = videoUploaded, 
+                    mime_type = args.ContentType,
+                    attributes = new[] {
+                        new DocumentAttributeVideo {
+                            flags = DocumentAttributeVideo.Flags.supports_streaming,
+                        },
                     },
-                },
-                
-            };
+                    
+                };
 
-            return video;
+                return video;
+            }
         }
         catch(Exception ex){
             throw new Exception("Failed to upload video", ex);

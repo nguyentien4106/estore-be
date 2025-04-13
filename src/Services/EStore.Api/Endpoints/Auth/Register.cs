@@ -1,9 +1,9 @@
-using EStore.Application.Auth.Commands.Auth.Register;
 using Carter;
 using Mapster;
 using BuildingBlocks.Models;
+using EStore.Application.Commands.Auth.Register;
 
-namespace EStore.Api.Endpoints;
+namespace EStore.Api.Endpoints.Auth;
 
 public class Register : ICarterModule
 {
@@ -13,11 +13,10 @@ public class Register : ICarterModule
         {
             var command = request.Adapt<RegisterAccountCommand>();
             var result = await sender.Send(command);
-            var response = result.Adapt<AppResponse<bool>>();
             
-            return Results.Ok(response);
+            return Results.Ok(result);
         }) .WithName("RegisterAccount")
-        .Produces<RegisterAccountResponse>(StatusCodes.Status201Created)
+        .Produces<AppResponse<bool>>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithSummary("Register Account")
         .WithDescription("Register Account");

@@ -1,11 +1,13 @@
-﻿using EStore.Application.Files.Commands.UploadFileTelegram;
-using Microsoft.AspNetCore.Http;
+﻿using EStore.Application.Commands.Files.UploadFile;
+using EStore.Application.Models.Files;
 
 namespace EStore.Application.Services.Telegram;
 
 public interface ITelegramService
 {
     Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId);
+
+    Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileHandlerArgs args, string userId);
 
     Task<AppResponse<Stream>> DownloadFileAsync(TeleFileEntity fileLocation);
 

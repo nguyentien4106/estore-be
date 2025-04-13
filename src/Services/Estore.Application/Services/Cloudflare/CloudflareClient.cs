@@ -6,7 +6,6 @@ using EStore.Domain.Models.Base;
 using EStore.Application.Helpers;
 using System.Net;
 using Microsoft.AspNetCore.Http;
-using System.IO;
 
 namespace EStore.Application.Services.Cloudflare;
 
@@ -40,7 +39,7 @@ public class CloudflareClient : ICloudflareClient
         {
             BucketName = _bucketName,
             Key = R2Helper.GetR2FileKey(userName, fileName),
-            InputStream = FileHelper.GetFileStream(file),
+            InputStream = FileHelper.GetMemoryStream(file),
             ContentType = file.ContentType,
             DisablePayloadSigning = true,
         };

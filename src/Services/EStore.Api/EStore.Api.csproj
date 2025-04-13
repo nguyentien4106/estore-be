@@ -12,20 +12,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="Downloads\**" />
-      <Content Remove="Downloads\**" />
-      <EmbeddedResource Remove="Downloads\**" />
-      <None Remove="Downloads\**" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
+      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
       <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
       <ProjectReference Include="..\EStore.Application\EStore.Application.csproj" />
       <ProjectReference Include="..\EStore.Domain\EStore.Domain.csproj" />

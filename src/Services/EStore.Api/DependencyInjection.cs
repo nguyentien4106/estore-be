@@ -1,20 +1,24 @@
 using EStore.Domain.Models;
 using EStore.Infrastructure.Data;
 using BuildingBlocks.Auth.AuthConfiguration;
-using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
-using Carter;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using FluentValidation;
+using EStore.Api.Middlewares;
+using EStore.Application.Constants;
+using Microsoft.AspNetCore.Authorization;
+using BuildingBlocks.Auth.Models;
+using EStore.Api.Middlewares.Files;
+using EStore.Api.Middlewares.Auth;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace EStore.Api;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddEStoreServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddEStoreServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
@@ -22,12 +26,29 @@ public static class DependencyInjection
         services.AddIdentityServices(configuration);
         services.AddJwtServices();
         services.AddValidators();
+        services.AddAuthorizationHandlers();
+        services.ConfigureFormOptions();
 
         return services;
     }
 
-    private static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection ConfigureFormOptions(this IServiceCollection services)
     {
+        services.Configure<FormOptions>(options =>
+        {
+            options.ValueLengthLimit = int.MaxValue;
+            
+            options.MultipartBodyLengthLimit = FileSizeLimits.PlusTierLimit;
+        });
+
+        return services;
+    }
+
+    private static IServiceCollection AddIdentityServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        // Configure Identity user settings
         services.AddIdentity<User, IdentityRole>(opts =>
         {
             opts.User.RequireUniqueEmail = true;
@@ -38,6 +59,7 @@ public static class DependencyInjection
         .AddEntityFrameworkStores<EStoreDbContext>()
         .AddDefaultTokenProviders();
         
+        // Configure password requirements
         services.Configure<IdentityOptions>(options =>
         {
             options.Password.RequireDigit = false;
@@ -48,32 +70,58 @@ public static class DependencyInjection
             options.Password.RequiredUniqueChars = 1;
         });
         
+        // Configure token provider options
         services.Configure<DataProtectionTokenProviderOptions>(opts =>
         {
-            opts.TokenLifespan = TimeSpan.FromDays(int.TryParse(configuration["JwtSettings:RefreshTokenExpirationDays"], out int days)  ? days : 10);
+            opts.TokenLifespan = TimeSpan.FromDays(
+                int.TryParse(configuration["JwtSettings:RefreshTokenExpirationDays"], out int days) 
+                    ? days 
+                    : 10
+            );
         });
-        
         
         return services;
     }
 
     private static IServiceCollection AddValidators(this IServiceCollection services)
     {
-        var assembly = typeof(Program).Assembly;
-        services.AddValidatorsFromAssembly(assembly);
+        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+        return services;
+    }
+
+    private static IServiceCollection AddAuthorizationHandlers(this IServiceCollection services)
+    {
+        // Configure authorization policies
+        services.AddAuthorizationBuilder()
+            // File size limit policies
+            .AddPolicy("FreeTierFileSizeLimit", policy =>
+                policy.Requirements.Add(new FileSizeLimitRequirement(FileSizeLimits.FreeTierLimit)))
+            .AddPolicy("ProTierFileSizeLimit", policy =>
+                policy.Requirements.Add(new FileSizeLimitRequirement(FileSizeLimits.ProTierLimit)))
+            .AddPolicy("PlusTierFileSizeLimit", policy =>
+                policy.Requirements.Add(new FileSizeLimitRequirement(FileSizeLimits.PlusTierLimit)))
+            // Account type policies  
+            .AddPolicy("RequirePro", policy => 
+                policy.Requirements.Add(new AccountRequirement(AccountType.Pro.ToString())))
+            .AddPolicy("RequirePlus", policy =>
+                policy.Requirements.Add(new AccountRequirement(AccountType.Plus.ToString())));
+
+        // Register authorization services
+        services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        services.AddSingleton<IAuthorizationHandler, FileSizeLimitAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationHandler, AccountAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationMiddlewareResultHandler>();
 
         return services;
     }
-    public static WebApplication UseEStoreApiServices(this WebApplication app)
-    {
-        app.UseJwtServices();
-        app.MapCarter();
-        app.UseExceptionHandler(opts => { });
-        app.UseHealthChecks("/health", new HealthCheckOptions()
-        {
-            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-        });
-        
-        return app;
-    }
+
+    // private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    // {
+    //     services.AddScoped<IEmailSender<User>, EmailService>();
+    //     services.AddScoped<ICloudflareClient, CloudflareClient>();
+    //     services.AddScoped<ITelegramService, TelegramService>();
+    //     services.AddScoped<VNPayService>();
+
+    //     return services;
+    // }
 }

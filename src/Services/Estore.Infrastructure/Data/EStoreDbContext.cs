@@ -3,6 +3,7 @@ using EStore.Application.Data;
 using EStore.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace EStore.Infrastructure.Data;
 
@@ -23,6 +24,12 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     public DbSet<R2FileEntity> R2FileEntities { get; set; }
 
     public DbSet<StorageUsage> StorageUsages { get; set; }
+
+    public DbSet<Order> Orders { get; set; }
+
+    public DbSet<Payment> Payments { get; set; }
+    
+    public DatabaseFacade Database => base.Database;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
