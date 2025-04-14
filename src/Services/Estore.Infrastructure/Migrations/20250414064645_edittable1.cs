@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EStore.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class edittable1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -73,6 +73,7 @@ namespace EStore.Infrastructure.Migrations
                     OrderType = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
+                    SubscriptionType = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -95,7 +96,9 @@ namespace EStore.Infrastructure.Migrations
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
                     Method = table.Column<string>(type: "text", nullable: false),
+                    OrderType = table.Column<string>(type: "text", nullable: false),
                     Success = table.Column<bool>(type: "boolean", nullable: false),
+                    SubscriptionType = table.Column<int>(type: "integer", nullable: false),
                     VnpIpAddress = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
                     VnpTransactionCode = table.Column<int>(type: "integer", maxLength: 50, nullable: true),
                     VnpBankCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
@@ -157,6 +160,26 @@ namespace EStore.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_StorageUsages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Subscriptions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    AccountType = table.Column<int>(type: "integer", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -408,6 +431,9 @@ namespace EStore.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "StorageUsages");
+
+            migrationBuilder.DropTable(
+                name: "Subscriptions");
 
             migrationBuilder.DropTable(
                 name: "TeleFileEntities");

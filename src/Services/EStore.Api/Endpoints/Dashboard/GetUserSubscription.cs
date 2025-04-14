@@ -1,7 +1,5 @@
 using EStore.Application.Models.Dashboard;
 using EStore.Application.Queries.Dashboard.GetUserSubscription;
-using Carter;
-using MediatR;
 
 namespace EStore.Api.Endpoints.Dashboard;
 

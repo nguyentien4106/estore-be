@@ -1,10 +1,8 @@
 using EStore.Api;
 using EStore.Api.Extensions;
 using EStore.Application;
-using EStore.Application.Constants;
 using EStore.Infrastructure;
 using EStore.Infrastructure.Data.Extensions;
-using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 

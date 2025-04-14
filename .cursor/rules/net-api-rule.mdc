@@ -3,6 +3,11 @@ description:
 globs: 
 alwaysApply: false
 ---
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # EditorConfig is awesome: https://EditorConfig.org
 
 # Top-most EditorConfig file

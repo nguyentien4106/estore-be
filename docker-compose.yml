@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: src/Services/EStore.Api/Dockerfile
+  distributedcache:
+    image: redis
 volumes:
   postgres_estoreapi:
   pgadmin_data:

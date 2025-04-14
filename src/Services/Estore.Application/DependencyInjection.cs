@@ -9,6 +9,9 @@ using EStore.Application.Services.Telegram;
 using EStore.Application.Models.Configuration;
 using EStore.Application.Services;
 using EStore.Application.Services.Payment;
+using EStore.Application.Services.R2PresignUrl;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 
 namespace EStore.Application;
 
@@ -27,6 +30,7 @@ public static class DependencyInjection
         services.AddFeatureManagement();
         services.AddServices();
         services.AddSubscriptionMonitorService();
+        services.AddR2PresignedUrlServices(configuration);
         
         return services;
     }
@@ -43,7 +47,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddConfigurationObjects(this IServiceCollection services, IConfiguration configuration)
     {
-                // Register configuration instances for DI
+        // Register configuration instances for DI
         services.AddSingleton(configuration.GetSection("SendGridSettings")
             .Get<SendGridConfiguration>() ?? throw new InvalidOperationException("SendGridSettings not found."));
         
@@ -62,7 +66,29 @@ public static class DependencyInjection
     private static IServiceCollection AddSubscriptionMonitorService(this IServiceCollection services)
     {
         services.AddHostedService<SubscriptionMonitorService>();
-        
+        return services;
+    }
+
+    private static IServiceCollection AddR2PresignedUrlServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var a = configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis connection string not found.");
+        // Configure Redis
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis") ??  throw new InvalidOperationException("Redis connection string not found.");
+        });
+
+        // Register R2 presigned URL services
+        services.AddScoped<R2PresignUrlService>();
+        services.AddScoped<IR2PresignUrlService>(provider =>
+        {
+            var baseService = provider.GetRequiredService<R2PresignUrlService>();
+            var cache = provider.GetRequiredService<IDistributedCache>();
+            var logger = provider.GetRequiredService<ILogger<CachedR2PresignUrlService>>();
+            
+            return new CachedR2PresignUrlService(baseService, cache, logger);
+        });
+
         return services;
     }
 }

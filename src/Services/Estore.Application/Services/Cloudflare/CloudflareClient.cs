@@ -92,8 +92,8 @@ public class CloudflareClient : ICloudflareClient
             };
             var url = await _s3Client.GetPreSignedURLAsync(presign);
                 
-                return AppResponse<string>.Success(url);
-            }
+            return AppResponse<string>.Success(url);
+        }
         catch(Exception ex){
             return AppResponse<string>.Error(ex.Message);
         }
