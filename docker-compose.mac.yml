@@ -36,3 +36,10 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     restart: always
+
+
+  distributedcache:
+    container_name: distributedcache
+    restart: always
+    ports:
+      - "6379:6379"
