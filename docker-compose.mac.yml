@@ -17,26 +17,13 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ConnectionStrings__Database=Server=estoredb;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres;Include Error Detail=true
+      - ConnectionStrings__Redis=distributedcache:6379
     ports:
       - "8000:8080"
       - "8080:8081"
     volumes:
       - $HOME/.aspnet/https:/home/app/.aspnet/https:ro
       - $HOME/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=nguyenvantien0620@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=1
-    ports:
-      - "5050:80"
-    depends_on:
-      - estoredb
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    restart: always
-
 
   distributedcache:
     container_name: distributedcache

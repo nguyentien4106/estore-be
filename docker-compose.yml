@@ -1,6 +1,6 @@
 services:
   estoreapi:
-    image: ${DOCKER_REGISTRY-}estoreapi
+    image: nguyentien0620/estoreapi
     build:
       context: .
       dockerfile: src/Services/EStore.Api/Dockerfile
