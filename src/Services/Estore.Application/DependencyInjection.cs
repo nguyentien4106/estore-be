@@ -12,6 +12,7 @@ using EStore.Application.Services.Payment;
 using EStore.Application.Services.R2PresignUrl;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using EStore.Application.Services.RabbitMQ;
 
 namespace EStore.Application;
 
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddFeatureManagement();
         services.AddServices();
         services.AddSubscriptionMonitorService();
+        services.AddMergeFileWorkerService();
         services.AddR2PresignedUrlServices(configuration);
         
         return services;
@@ -41,6 +43,7 @@ public static class DependencyInjection
         services.AddTransient<ICloudflareClient, CloudflareClient>();
         services.AddSingleton<ITelegramService, TelegramService>();
         services.AddSingleton<IVnPayService, VNPayService>();
+        services.AddSingleton<IRabbitMQService, RabbitMQService>();
 
         return services;
     }
@@ -60,12 +63,21 @@ public static class DependencyInjection
         services.AddSingleton(configuration.GetSection("VNPayConfiguration")
             .Get<VNPayConfiguration>() ?? throw new InvalidOperationException("VNPayConfiguration not found."));
         
+        services.AddSingleton(configuration.GetSection("RabbitMQConfiguration")
+            .Get<RabbitMQConfiguration>() ?? throw new InvalidOperationException("RabbitMQConfiguration not found."));
+        
         return services;
     }
 
     private static IServiceCollection AddSubscriptionMonitorService(this IServiceCollection services)
     {
         services.AddHostedService<SubscriptionMonitorService>();
+        return services;
+    }
+
+    private static IServiceCollection AddMergeFileWorkerService(this IServiceCollection services)
+    {
+        services.AddHostedService<MergeFileWorkerService>();
         return services;
     }
 

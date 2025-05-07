@@ -6,6 +6,7 @@ namespace EStore.Application.Services.Cloudflare;
 public interface ICloudflareClient
 {
     Task<AppResponse<FileEntity>> UploadFileAsync(IFormFile file, string userName);
+    Task<AppResponse<FileEntity>> UploadFileAsync(Stream stream, FileEntity entity, string userName);
 
     Task<AppResponse<string>> DeleteFileAsync(string fileName);
 

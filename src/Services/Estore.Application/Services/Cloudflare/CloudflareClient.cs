@@ -121,4 +121,25 @@ public class CloudflareClient : ICloudflareClient
             return AppResponse<Stream>.Error(ex.Message);
         }
     }
+
+    public async Task<AppResponse<FileEntity>> UploadFileAsync(Stream stream, FileEntity entity, string userName)
+    {
+        var putRequest = new PutObjectRequest
+        {
+            BucketName = _bucketName,
+            Key = R2Helper.GetR2FileKey(userName, entity.FileName),
+            InputStream = stream,
+            ContentType = entity.ContentType,
+            DisablePayloadSigning = true,
+        };
+
+        var response = await _s3Client.PutObjectAsync(putRequest);
+
+        if (SuccessCodes.Contains(response.HttpStatusCode))
+        {
+            return AppResponse<FileEntity>.Success(entity);
+        }
+
+        return AppResponse<FileEntity>.Error(response.HttpStatusCode.ToString());
+    }
 }
