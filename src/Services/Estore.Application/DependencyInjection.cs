@@ -6,14 +6,13 @@ using Microsoft.FeatureManagement;
 using EStore.Application.Services.Cloudflare;
 using EStore.Application.Services.Email;
 using EStore.Application.Services.Telegram;
-using EStore.Application.Models.Configuration;
 using EStore.Application.Services;
 using EStore.Application.Services.Payment;
 using EStore.Application.Services.R2PresignUrl;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using EStore.Application.Services.RabbitMQ;
-
+using EStore.Application.Services.Webhooks;
 namespace EStore.Application;
 
 public static class DependencyInjection
@@ -44,6 +43,7 @@ public static class DependencyInjection
         services.AddSingleton<ITelegramService, TelegramService>();
         services.AddSingleton<IVnPayService, VNPayService>();
         services.AddSingleton<IRabbitMQService, RabbitMQService>();
+        services.AddTransient<IWebhookService, N8nWebhookService>();
 
         return services;
     }
@@ -66,6 +66,12 @@ public static class DependencyInjection
         services.AddSingleton(configuration.GetSection("RabbitMQConfiguration")
             .Get<RabbitMQConfiguration>() ?? throw new InvalidOperationException("RabbitMQConfiguration not found."));
         
+        services.AddSingleton(configuration.GetSection("Webhooks")
+            .Get<WebhooksConfiguration>() ?? throw new InvalidOperationException("WebhooksConfiguration not found."));
+
+        services.AddSingleton(configuration.GetSection("AppSettings")
+            .Get<AppSettings>() ?? throw new InvalidOperationException("AppSettings not found."));
+
         return services;
     }
 

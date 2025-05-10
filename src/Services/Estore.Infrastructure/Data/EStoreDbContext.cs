@@ -39,11 +39,6 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
         base.OnModelCreating(builder);
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres");
-    }
-
     public Task<int> CommitAsync(CancellationToken cancellationToken = default)
     {
         return base.SaveChangesAsync(cancellationToken);

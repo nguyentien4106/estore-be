@@ -14,7 +14,8 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services
     .AddEStoreServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
-    .AddApplicationServices(builder.Configuration);
+    .AddApplicationServices(builder.Configuration)
+    .AddCustomWebhookServices();
 
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
