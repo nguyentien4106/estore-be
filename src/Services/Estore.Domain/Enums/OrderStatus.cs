@@ -1,4 +1,4 @@
-namespace Estore.Domain.Enums;
+namespace EStore.Domain.Enums;
 
 
 public enum OrderStatus

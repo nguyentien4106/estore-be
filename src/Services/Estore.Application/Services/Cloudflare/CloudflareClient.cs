@@ -88,12 +88,12 @@ public class CloudflareClient : ICloudflareClient
                 BucketName = _cloudflareConfiguration.BucketName,
                 Key = fileKey,
                 Verb = HttpVerb.GET,
-                Expires = DateTime.Now.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(7),
             };
             var url = await _s3Client.GetPreSignedURLAsync(presign);
                 
-                return AppResponse<string>.Success(url);
-            }
+            return AppResponse<string>.Success(url);
+        }
         catch(Exception ex){
             return AppResponse<string>.Error(ex.Message);
         }
@@ -120,5 +120,26 @@ public class CloudflareClient : ICloudflareClient
         {
             return AppResponse<Stream>.Error(ex.Message);
         }
+    }
+
+    public async Task<AppResponse<FileEntity>> UploadFileAsync(Stream stream, FileEntity entity, string userName)
+    {
+        var putRequest = new PutObjectRequest
+        {
+            BucketName = _bucketName,
+            Key = R2Helper.GetR2FileKey(userName, entity.FileName),
+            InputStream = stream,
+            ContentType = entity.ContentType,
+            DisablePayloadSigning = true,
+        };
+
+        var response = await _s3Client.PutObjectAsync(putRequest);
+
+        if (SuccessCodes.Contains(response.HttpStatusCode))
+        {
+            return AppResponse<FileEntity>.Success(entity);
+        }
+
+        return AppResponse<FileEntity>.Error(response.HttpStatusCode.ToString());
     }
 }

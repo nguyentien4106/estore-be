@@ -8,7 +8,7 @@ public class GetFilesByUserName : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/files/users/{userName}", async (string userName, [AsParameters]PaginationRequest request, ISender sender) =>
+        app.MapGet("/files/users/{userName}", async (string userName, [AsParameters]GetFilesByUserNameRequest request, ISender sender) =>
         {
             var command = new GetFilesByUserNameQuery(userName, request);
             var result = await sender.Send(command);

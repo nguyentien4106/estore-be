@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/Services/EStore.Api/EStore.Api.csproj", "src/Services/EStore.Api/"]
-COPY ["src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth/BuildingBlocks.Auth.csproj", "src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth/"]
+COPY ["src/BuildingBlocks/BuildingBlocks.Auth/BuildingBlocks.Auth.csproj", "src/BuildingBlocks/BuildingBlocks.Auth/"]
 COPY ["src/BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "src/BuildingBlocks/BuildingBlocks/"]
 COPY ["src/Services/EStore.Application/EStore.Application.csproj", "src/Services/EStore.Application/"]
 COPY ["src/Services/EStore.Domain/EStore.Domain.csproj", "src/Services/EStore.Domain/"]

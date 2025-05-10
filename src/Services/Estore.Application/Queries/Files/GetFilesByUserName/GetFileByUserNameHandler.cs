@@ -4,7 +4,8 @@ using EStore.Application.Models.Files;
 
 namespace EStore.Application.Queries.Files.GetFilesByUserName;
 
-public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<User> userManager) : IQueryHandler<GetFilesByUserNameQuery, AppResponse<PaginatedResult<FileEntityResult>>>
+public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<User> userManager) 
+    : IQueryHandler<GetFilesByUserNameQuery, AppResponse<PaginatedResult<FileEntityResult>>>
 {
     public async Task<AppResponse<PaginatedResult<FileEntityResult>>> Handle(GetFilesByUserNameQuery query, CancellationToken cancellationToken)
     {
@@ -14,32 +15,50 @@ public class GetFilesByUserNameHandler(IEStoreDbContext context, UserManager<Use
         {
             return AppResponse<PaginatedResult<FileEntityResult>>.NotFound("User", query.UserName);
         }
-        var pageIndex = query.PaginationRequest.PageIndex;
-        var pageSize = query.PaginationRequest.PageSize;
 
-        var r2Count = await context.R2FileEntities.Where(item => item.UserId == user.Id).LongCountAsync(cancellationToken);
-        var teleCount = await context.TeleFileEntities.Where(item => item.UserId == user.Id).LongCountAsync(cancellationToken);
+        var pageIndex = query.Request.PageIndex;
+        var pageSize = query.Request.PageSize;
+        var storageSource = query.Request.StorageSource;
+        long totalCount = 0;
+        List<FileEntityResult> files = [];
 
-        var telegramFiles = await context.TeleFileEntities
-                                .Where(item => item.UserId == user.Id)
-                                .OrderByDescending(item => item.CreatedAt)
-                                .Skip(pageIndex * pageSize)
-                                .Take(pageSize)
-                                .AsNoTracking()
-                                .Select(item => item.ToFileEntityResponse())
-                                .ToListAsync(cancellationToken);
+        switch (storageSource)
+        {
+            case StorageSource.R2:
+                totalCount = await context.R2FileEntities
+                    .Where(item => item.UserId == user.Id)
+                    .LongCountAsync(cancellationToken);
 
-        var r2Files = await context.R2FileEntities
-                                .Where(item => item.UserId == user.Id)
-                                .OrderByDescending(item => item.CreatedAt)
-                                .Skip(pageIndex * pageSize)
-                                .Take(pageSize)
-                                .AsNoTracking()
-                                .Select(item => item.ToFileEntityResponse())
-                                .ToListAsync(cancellationToken);
-        
-        var response = r2Files.Concat(telegramFiles).OrderByDescending(item => item.CreatedAt).ToList();
+                files = await context.R2FileEntities
+                    .Where(item => item.UserId == user.Id)
+                    .OrderByDescending(item => item.CreatedAt)
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .AsNoTracking()
+                    .Select(item => item.ToFileEntityResponse())
+                    .ToListAsync(cancellationToken);
+                break;
 
-        return AppResponse<PaginatedResult<FileEntityResult>>.Success(new PaginatedResult<FileEntityResult>(pageIndex, pageSize, r2Count + teleCount, response) );
+            case StorageSource.Telegram:
+                totalCount = await context.TeleFileEntities
+                    .Where(item => item.UserId == user.Id)
+                    .LongCountAsync(cancellationToken);
+
+                files = await context.TeleFileEntities
+                    .Where(item => item.UserId == user.Id)
+                    .OrderByDescending(item => item.CreatedAt)
+                    .Skip(pageIndex * pageSize)
+                    .Take(pageSize)
+                    .AsNoTracking()
+                    .Select(item => item.ToFileEntityResponse())
+                    .ToListAsync(cancellationToken);
+                break;
+
+            default:
+                return AppResponse<PaginatedResult<FileEntityResult>>.Error("Invalid storage source.");
+        }
+
+        return AppResponse<PaginatedResult<FileEntityResult>>.Success(
+            new PaginatedResult<FileEntityResult>(pageIndex, pageSize, totalCount, files));
     }
 }

@@ -29,17 +29,14 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
 
     public DbSet<Payment> Payments { get; set; }
     
+    public DbSet<Subscription> Subscriptions { get; set; }
+    
     public DatabaseFacade Database => base.Database;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(builder);
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=EStoreDb;User Id=postgres;Password=postgres");
     }
 
     public Task<int> CommitAsync(CancellationToken cancellationToken = default)

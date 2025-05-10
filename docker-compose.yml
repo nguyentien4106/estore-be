@@ -1,9 +1,14 @@
 services:
   estoreapi:
-    image: ${DOCKER_REGISTRY-}estoreapi
+    image: nguyentien0620/estoreapi
     build:
       context: .
       dockerfile: src/Services/EStore.Api/Dockerfile
+  distributedcache:
+    image: redis
+  rabbitmq:
+    image: rabbitmq:3-management
 volumes:
   postgres_estoreapi:
   pgadmin_data:
+  rabbitmq_data:

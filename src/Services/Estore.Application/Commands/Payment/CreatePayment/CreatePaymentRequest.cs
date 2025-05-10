@@ -1,3 +1,4 @@
+using EStore.Domain.Enums;
 namespace EStore.Application.Commands.Payment.CreatePayment;
 
 public record CreatePaymentRequest
@@ -8,4 +9,5 @@ public record CreatePaymentRequest
     public string BankCode { get; init; } = "";
     public string Language { get; init; } = "en";
     public string UserId { get; init; }
+    public string SubscriptionType { get; init; } = Domain.Enums.SubscriptionType.Monthly.ToString();
 } 

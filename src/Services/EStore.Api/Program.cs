@@ -1,10 +1,8 @@
 using EStore.Api;
 using EStore.Api.Extensions;
 using EStore.Application;
-using EStore.Application.Constants;
 using EStore.Infrastructure;
 using EStore.Infrastructure.Data.Extensions;
-using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +14,8 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services
     .AddEStoreServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
-    .AddApplicationServices(builder.Configuration);
+    .AddApplicationServices(builder.Configuration)
+    .AddCustomWebhookServices();
 
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

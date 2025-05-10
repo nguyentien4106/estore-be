@@ -1,4 +1,4 @@
-using Estore.Domain.Enums;
+using EStore.Domain.Enums;
 using EStore.Domain.Abstractions;
 
 namespace EStore.Domain.Models;
@@ -11,4 +11,5 @@ public class Order : Entity<Guid>
     public string OrderType {get;set;} = string.Empty;
     public string Description { get; set; } = string.Empty;
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    public SubscriptionType SubscriptionType { get; set; } = SubscriptionType.Monthly;
 }
