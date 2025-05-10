@@ -6,6 +6,9 @@ services:
       dockerfile: src/Services/EStore.Api/Dockerfile
   distributedcache:
     image: redis
+  rabbitmq:
+    image: rabbitmq:3-management
 volumes:
   postgres_estoreapi:
   pgadmin_data:
+  rabbitmq_data:
