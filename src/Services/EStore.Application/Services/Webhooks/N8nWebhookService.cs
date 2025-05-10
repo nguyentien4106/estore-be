@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -6,101 +8,45 @@ namespace EStore.Application.Services.Webhooks;
 
 public class N8nWebhookService : IWebhookService
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<N8nWebhookService> _logger;
-    private readonly Dictionary<string, string> _webhookUrls;
+    private readonly string _webhookUrl;
+    private readonly HttpClient _httpClient;
 
-    public N8nWebhookService(
-        IHttpClientFactory httpClientFactory,
-        IConfiguration configuration,
-        ILogger<N8nWebhookService> logger)
+    public N8nWebhookService(WebhooksConfiguration webhooksConfiguration)   
     {
-        _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
-        _logger = logger;
-        _webhookUrls = LoadWebhookUrls();
+        _webhookUrl = webhooksConfiguration.N8n.ConfirmEmail;
+        _httpClient = new HttpClient();
     }
 
-    public async Task<bool> SendWebhookAsync(string eventType, object payload)
-    {
-        return await SendWebhookAsync(eventType, payload, new Dictionary<string, string>());
-    }
-
-    public async Task<bool> SendWebhookAsync(string eventType, object payload, Dictionary<string, string> headers)
+    /// <summary>
+    /// Sends data to the n8n webhook
+    /// </summary>
+    /// <typeparam name="T">Type of the data to send</typeparam>
+    /// <param name="data">The data to send to the webhook</param>
+    /// <returns>Webhook response with success status and data</returns>
+    public async Task<AppResponse<object>> SendToWebhookAsync<T>(T data)
     {
         try
         {
-            if (!await IsWebhookConfiguredAsync(eventType))
-            {
-                _logger.LogWarning("No webhook URL configured for event type: {EventType}", eventType);
-                return false;
-            }
+            var json = JsonSerializer.Serialize(data);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var webhookUrl = _webhookUrls[eventType];
-            var client = _httpClientFactory.CreateClient("n8n-webhook");
+            var response = await _httpClient.PostAsync(_webhookUrl, content);
+            var responseContent = await response.Content.ReadAsStringAsync();
 
-            // Add default headers
-            client.DefaultRequestHeaders.Add("X-Event-Type", eventType);
-            client.DefaultRequestHeaders.Add("X-Webhook-Source", "estore-api");
-
-            // Add custom headers
-            foreach (var header in headers)
-            {
-                client.DefaultRequestHeaders.Add(header.Key, header.Value);
-            }
-
-            var response = await client.PostAsJsonAsync(webhookUrl, payload);
-            
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to send webhook for event {EventType}. Status: {StatusCode}, Error: {Error}",
-                    eventType, response.StatusCode, error);
-                return false;
-            }
-
-            _logger.LogInformation("Successfully sent webhook for event {EventType}", eventType);
-            return true;
+            return AppResponse<object>.Success(responseContent, "Webhook sent successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending webhook for event {EventType}", eventType);
-            return false;
+            Console.WriteLine($"Error calling n8n webhook: {ex.Message}");
+            return AppResponse<object>.Error(ex.Message);
         }
     }
 
-    public Task<bool> IsWebhookConfiguredAsync(string eventType)
+    /// <summary>
+    /// Disposes the HttpClient
+    /// </summary>
+    public void Dispose()
     {
-        return Task.FromResult(_webhookUrls.ContainsKey(eventType));
-    }
-
-    private Dictionary<string, string> LoadWebhookUrls()
-    {
-        var webhookUrls = new Dictionary<string, string>();
-        var webhookSection = _configuration.GetSection("Webhooks:N8n");
-
-        if (!webhookSection.Exists())
-        {
-            _logger.LogWarning("No webhook configuration found in appsettings.json");
-            return webhookUrls;
-        }
-
-        foreach (var webhook in webhookSection.GetChildren())
-        {
-            var eventType = webhook.Key;
-            var url = webhook.Value;
-
-            if (string.IsNullOrEmpty(url))
-            {
-                _logger.LogWarning("Webhook URL is empty for event type: {EventType}", eventType);
-                continue;
-            }
-
-            webhookUrls[eventType] = url;
-            _logger.LogInformation("Loaded webhook URL for event type: {EventType}", eventType);
-        }
-
-        return webhookUrls;
+        _httpClient?.Dispose();
     }
 } 

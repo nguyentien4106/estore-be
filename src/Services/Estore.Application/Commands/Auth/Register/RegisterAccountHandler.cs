@@ -63,7 +63,7 @@ public class RegisterAccountHandler : ICommandHandler<RegisterAccountCommand, Ap
             var confirmationLink = $"{_appSettings.ConfirmEmailBaseUrl}?userId={newUser.Id}&token={encodedToken}";
 
             // Send webhook for email confirmation
-            await _webhookService.SendWebhookAsync("ConfirmEmail", new
+            await _webhookService.SendToWebhookAsync(new
             {
                 UserId = newUser.Id,
                 Email = newUser.Email,
