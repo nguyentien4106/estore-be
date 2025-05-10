@@ -3,21 +3,19 @@ using EStore.Application.Commands.Auth.ConfirmEmail;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace EStore.Api.Endpoints.Auth;
 
-public class RegisterConfirmation : ICarterModule
+
+public class ConfirmEmail : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/auth/confirm-email", async (string userId, string token, ISender sender) =>
+        app.MapPost("/auth/confirm-email", async ([FromBody] ConfirmEmailRequest request, ISender sender) =>
         {
-            var command = new ConfirmEmailCommand 
-            { 
-                UserId = userId, 
-                Token = token 
-            };
+            var command = request.Adapt<ConfirmEmailCommand>();
             
             var result = await sender.Send(command);
             
