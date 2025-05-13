@@ -51,7 +51,7 @@ public class UploadFileMultipart : ICarterModule
 
             return Results.Ok();
         })
-        .Accepts<IFormFile>("multipart/form-data")
+        .Accepts<UploadFileMultipartRequest>("multipart/form-data")
         .Produces<AppResponse<FileEntityResult>>(StatusCodes.Status201Created)
         .WithName("UploadFileMultipart")
         .WithTags("UploadFile")

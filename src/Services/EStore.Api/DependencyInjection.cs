@@ -54,7 +54,7 @@ public static class DependencyInjection
             opts.User.RequireUniqueEmail = true;
             opts.SignIn.RequireConfirmedPhoneNumber = false;
             opts.SignIn.RequireConfirmedAccount = false;
-            opts.SignIn.RequireConfirmedEmail = false;
+            opts.SignIn.RequireConfirmedEmail = true;
         })
         .AddEntityFrameworkStores<EStoreDbContext>()
         .AddDefaultTokenProviders();
