@@ -12,4 +12,6 @@ public interface ITelegramService
     Task<AppResponse<Stream>> DownloadFileAsync(TeleFileEntity fileLocation);
 
     Task<AppResponse<bool>> DeleteMessageAsync(int messageId);
+
+    Task<AppResponse<TeleFileEntity>> SendMessageAsync(UploadFileHandlerArgs args, string userId);
 }

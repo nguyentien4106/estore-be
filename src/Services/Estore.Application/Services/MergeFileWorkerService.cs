@@ -28,23 +28,11 @@ namespace EStore.Application.Services
 
             try
             {
-                // Note: The current IRabbitMQService.ConsumerAsync consumes from a hardcoded "hello" queue
-                // and uses autoAck. For actual file merging, you'd want to:
-                // 1. Consume from the configured queue (e.g., the one used by the producer for file chunk messages).
-                // 2. Implement message processing logic (downloading chunks, merging them).
-                // 3. Use manual acknowledgment (autoAck: false) and acknowledge messages only after successful processing.
-                // 4. Handle potential errors during message processing and decide on nack/requeue/dead-lettering.
-
-                // The RabbitMQService.ConsumerAsync as per your latest changes returns Task<bool>.
-                // We'll call it and log its outcome. In a real scenario, you might loop or have more sophisticated logic based on the return.
                 var result = await _rabbitMQService.ConsumerAsync(ConsumerTag);
 
                 if (result.Succeed)
                 {
                     _logger.LogInformation($"Consumer '{ConsumerTag}' started successfully. Waiting for messages to merge files.");
-                    // Keep the service alive while the consumer is running in the background
-                    // The AsyncEventingBasicConsumer runs on its own threads managed by the RabbitMQ client library.
-                    // The stoppingToken will signal when to shut down.
                     while (!stoppingToken.IsCancellationRequested)
                     {
                         await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); // Keep alive, check periodically

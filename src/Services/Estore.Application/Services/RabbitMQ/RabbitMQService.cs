@@ -79,7 +79,7 @@ namespace EStore.Application.Services.RabbitMQ
                     var message = Encoding.UTF8.GetString(body);
                     try
                     {
-                        await ProcessMessageAsync(message); // Extracted processing logic
+                        //await ProcessMessageAsync(message); // Extracted processing logic
                         await channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
                     }
                     catch (Exception ex)

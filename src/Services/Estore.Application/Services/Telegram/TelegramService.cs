@@ -12,6 +12,7 @@ public class TelegramService : ITelegramService
 {
     private Client? _client;
     private ChatBase? _peer;
+    private ChatBase? _tempFilesPeer;
     private readonly TelegramConfiguration _telegramConfiguration;
     private readonly ILogger<TelegramService> _logger;
 
@@ -39,7 +40,7 @@ public class TelegramService : ITelegramService
             
             var chats = await _client.Messages_GetAllChats();
             _peer = chats.chats[_telegramConfiguration.ChannelId];
-            
+            _tempFilesPeer = chats.chats[2679347423];
             return true;
         }
         catch (Exception ex)
@@ -122,6 +123,27 @@ public class TelegramService : ITelegramService
         }
     }
 
+    public async Task<AppResponse<TeleFileEntity>> SendMessageAsync(UploadFileHandlerArgs args, string userId)
+    {
+        try
+        {
+            var uploadedFile = await _client.UploadFileAsync(args.FileStream, args.FileName);
+            var inputMedia = new InputMediaUploadedDocument
+            {
+                file = uploadedFile,
+            };
+            var message = await _client.SendMessageAsync(_tempFilesPeer, args.FileName, inputMedia);
+
+            return message.media != null 
+                ? CreateTeleFileLocationFromMedia(message.media, args, userId, message.id)
+                : AppResponse<TeleFileEntity>.Error("Failed to upload file");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send message {FileName}", args.FileName);
+            return AppResponse<TeleFileEntity>.Error(ex.Message);
+    }
+    }
     private static AppResponse<TeleFileEntity> CreateTeleFileLocationFromMedia(MessageMedia media, UploadFileHandlerArgs args, string userId, int messageId)
     {
         var teleFile = new TeleFileEntity

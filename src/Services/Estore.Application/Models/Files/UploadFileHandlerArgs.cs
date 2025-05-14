@@ -5,7 +5,7 @@ public class UploadFileHandlerArgs
 {
     public WTelegram.Client Client { get; set; }
 
-    public System.IO.Stream FileStream { get; set; }
+    public Stream FileStream { get; set; }
 
     public string Caption { get; set; }
 

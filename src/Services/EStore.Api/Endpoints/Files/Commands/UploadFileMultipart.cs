@@ -5,6 +5,7 @@ using EStore.Application.Constants;
 using EStore.Application.DesignPatterns.Factories;
 using EStore.Application.Models.Files;
 using EStore.Application.Services.RabbitMQ;
+using EStore.Application.Services.Telegram;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStore.Api.Endpoints.Files.Commands;
@@ -25,27 +26,31 @@ public class UploadFileMultipart : ICarterModule
     {
         
         // Plus tier: 5 GB limit
-        app.MapPost("/files/multipart", async ([FromForm] UploadFileMultipartRequest request, [FromServices] IRabbitMQService queueService) =>
+        app.MapPost("/files/multipart", async (
+            [FromForm] UploadFileMultipartRequest request, 
+            [FromServices] IRabbitMQService queueService,
+            [FromServices] ITelegramService telegramService,
+            [FromServices] ILogger<UploadFileMultipart> logger
+        ) =>
         {
             var file = request.File;
             var fileId = request.FileName;
             var chunkIndex = request.ChunkIndex;
             using var stream = file.OpenReadStream();
-
+            var args = new UploadFileHandlerArgs{
+                FileStream = stream,
+                FileName = request.FileName + "~~" + chunkIndex,
+                ContentType = file.ContentType,
+                ContentLength = file.Length,
+            };
             // Save chunk to local disk
-            var tempDir = Path.Combine("temps", request.UserId, request.FileId);
-            Directory.CreateDirectory(tempDir); // Ensure directory exists
-            var filePath = Path.Combine(tempDir, chunkIndex.ToString());
-            using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-            {
-                stream.Seek(0, SeekOrigin.Begin); // Reset stream position
-                await stream.CopyToAsync(fileStream);
-            }
+            var result = await telegramService.SendMessageAsync(args, request.UserId);
+
             // Publish to RabbitMQ
             var message = JsonSerializer.Serialize(new {
                 FileId = request.FileId,
                 UserId = request.UserId,
-                FilePath = filePath
+                FileEntity = result.Data
             });
             await queueService.ProducerAsync(message);
 
