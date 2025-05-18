@@ -115,13 +115,4 @@ public static class DependencyInjection
         return services;
     }
 
-    // private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
-    // {
-    //     services.AddScoped<IEmailSender<User>, EmailService>();
-    //     services.AddScoped<ICloudflareClient, CloudflareClient>();
-    //     services.AddScoped<ITelegramService, TelegramService>();
-    //     services.AddScoped<VNPayService>();
-
-    //     return services;
-    // }
 }

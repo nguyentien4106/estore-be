@@ -8,8 +8,8 @@ public class DownloadImageFileHandler() : IDownloadFileHandler
     {
         return new InputPhotoFileLocation()
             {
-                id = fileLocation.FileId,
-                access_hash = fileLocation.AccessHash,
+                id = fileLocation.FileId ?? 0,
+                access_hash = fileLocation.AccessHash ?? 0,
                 file_reference = fileLocation.FileReference,
                 thumb_size = fileLocation.Thumbnail,
                 

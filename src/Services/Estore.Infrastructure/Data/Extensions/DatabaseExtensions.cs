@@ -15,16 +15,15 @@ public static class DatabaseExtensions
 
     public static async Task InitialiseDatabaseAsync(this WebApplication app)
     {
-        using var scope = app.Services.CreateScope();
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<EStoreDbContext>();
+            context.Database.MigrateAsync().GetAwaiter().GetResult();
 
-        var context = scope.ServiceProvider.GetRequiredService<EStoreDbContext>();
-
-        context.Database.MigrateAsync().GetAwaiter().GetResult();
-
-        await SeedAsync(context);
-
+            await SeedAsync(context);
+        }
     }
-
+    
     private static async Task SeedAsync(EStoreDbContext context)
     {
         await SeedRolesAsync(context);

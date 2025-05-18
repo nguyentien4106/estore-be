@@ -11,4 +11,5 @@ public class FileEntity : Entity<Guid>
     public string Extension { get; set; } = default!;
     public string UserId { get; set; }
     public string ContentType { get; set; } = default!;
+    public FileStatus FileStatus { get; set; } = FileStatus.Uploaded;
 }

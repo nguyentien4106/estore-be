@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using BuildingBlocks.Auth.Models;
 
-namespace EStore.Application.Services;
+namespace EStore.Application.Services.BackgroundServices;
 
 public class SubscriptionMonitorService(IServiceProvider serviceProvider, ILogger<SubscriptionMonitorService> logger) : BackgroundService
 {

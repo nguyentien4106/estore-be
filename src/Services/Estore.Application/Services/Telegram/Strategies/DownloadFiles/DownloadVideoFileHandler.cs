@@ -10,15 +10,15 @@ public class DownloadVideoFileHandler : IDownloadFileHandler
 
         return new InputDocumentFileLocation()
         {
-            id = fileLocation.FileId,
+            id = fileLocation.FileId ?? 0,
             file_reference = fileLocation.FileReference,
-            access_hash = fileLocation.AccessHash,
+            access_hash = fileLocation.AccessHash ?? 0,
             thumb_size = ""
         };
         var document =  new Document()
         {
-            id = fileLocation.FileId,
-            access_hash = fileLocation.AccessHash,
+            id = fileLocation.FileId ?? 0,
+            access_hash = fileLocation.AccessHash ?? 0,
             file_reference = fileLocation.FileReference,
         };
 

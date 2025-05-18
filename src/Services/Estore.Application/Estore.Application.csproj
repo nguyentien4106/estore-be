@@ -41,5 +41,7 @@
     <ItemGroup>
       <Folder Include="Services\Telegram\Strategies\" />
     </ItemGroup>
-
+    <ItemGroup>
+      <Folder Include="Services\**" />
+    </ItemGroup>
 </Project>

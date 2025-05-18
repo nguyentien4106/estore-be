@@ -3,17 +3,20 @@ using System;
 using EStore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EStore.Infrastructure.Migrations
+namespace EStore.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(EStoreDbContext))]
-    partial class EStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250517193726_add-filestatus")]
+    partial class addfilestatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -336,7 +339,7 @@ namespace EStore.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<long?>("AccessHash")
+                    b.Property<long>("AccessHash")
                         .HasColumnType("bigint");
 
                     b.Property<string>("ContentType")
@@ -349,14 +352,14 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int?>("DcId")
+                    b.Property<int>("DcId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("FileId")
+                    b.Property<long>("FileId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("FileName")
@@ -364,6 +367,7 @@ namespace EStore.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<byte[]>("FileReference")
+                        .IsRequired()
                         .HasColumnType("bytea");
 
                     b.Property<long>("FileSize")
@@ -375,10 +379,10 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<int>("FileType")
                         .HasColumnType("integer");
 
-                    b.Property<long?>("Flags")
+                    b.Property<long>("Flags")
                         .HasColumnType("bigint");
 
-                    b.Property<int?>("Height")
+                    b.Property<int>("Height")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("LastModified")
@@ -387,17 +391,18 @@ namespace EStore.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
-                    b.Property<int?>("MessageId")
+                    b.Property<int>("MessageId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Thumbnail")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("Width")
+                    b.Property<int>("Width")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

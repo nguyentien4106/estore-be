@@ -12,7 +12,7 @@ public class DeleteFileTelegramHandler(ITelegramService telegramService, IEStore
             return AppResponse<Guid>.NotFound("File", command.Id);
         }
 
-        var result = await telegramService.DeleteMessageAsync(file.MessageId);
+        var result = await telegramService.DeleteMessageAsync(file.MessageId ?? -1);
         if (result.Succeed){
             context.TeleFileEntities.Remove(file);
             await context.CommitAsync(cancellationToken);

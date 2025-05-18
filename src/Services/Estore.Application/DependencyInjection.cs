@@ -6,13 +6,13 @@ using Microsoft.FeatureManagement;
 using EStore.Application.Services.Cloudflare;
 using EStore.Application.Services.Email;
 using EStore.Application.Services.Telegram;
-using EStore.Application.Services;
 using EStore.Application.Services.Payment;
 using EStore.Application.Services.R2PresignUrl;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using EStore.Application.Services.RabbitMQ;
 using EStore.Application.Services.Webhooks;
+using EStore.Application.Services.BackgroundServices;
 namespace EStore.Application;
 
 public static class DependencyInjection
@@ -41,9 +41,9 @@ public static class DependencyInjection
         services.AddTransient<IEmailSender<User>, EmailService>();
         services.AddTransient<ICloudflareClient, CloudflareClient>();
         services.AddSingleton<ITelegramService, TelegramService>();
-        services.AddSingleton<IVnPayService, VNPayService>();
-        services.AddSingleton<IRabbitMQService, RabbitMQService>();
-        services.AddTransient<IWebhookService, N8nWebhookService>();
+        services.AddTransient<IVnPayService, VNPayService>();
+        services.AddTransient<IRabbitMQService, RabbitMQService>();
+        //services.AddTransient<IWebhookService, N8nWebhookService>();
 
         return services;
     }

@@ -5,7 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EStore.Application.Services
+namespace EStore.Application.Services.BackgroundServices
 {
     public class MergeFileWorkerService : BackgroundService
     {

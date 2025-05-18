@@ -108,6 +108,7 @@ public class TelegramService : ITelegramService
         {
             var fileType = FileHelper.DetermineFileType(args.FileName);
             var uploadHandler = TelegramFileHandlerFactory.GetUploadFileHandler(fileType);
+            args.Client = _client;
             var uploadedFile = await uploadHandler.UploadFileAsync(args);
 
             var message = await _client.SendMessageAsync(_peer, userId, uploadedFile);
