@@ -21,8 +21,7 @@ public class UploadFileMultipartHandler(
         }
 
         var filePath = await HandleChunkFile(request);
-        var chunkMessage = await SendToQueueAsync(request, filePath);
-
+        var id = Guid.Empty;
         if (request.ChunkIndex == request.TotalChunks - 1)
         {
             var telegramFile = new TeleFileEntity
@@ -37,8 +36,10 @@ public class UploadFileMultipartHandler(
             };
             await context.TeleFileEntities.AddAsync(telegramFile, cancellationToken);
             await context.CommitAsync(cancellationToken);
-            chunkMessage.Id = telegramFile.Id;
+            id = telegramFile.Id;
         }
+
+        var chunkMessage = await SendToQueueAsync(request, filePath, id);
 
         return AppResponse<ChunkMessage>.Success(chunkMessage);
     }
@@ -69,7 +70,7 @@ public class UploadFileMultipartHandler(
         return filePath;
     }
 
-    private async Task<ChunkMessage> SendToQueueAsync(UploadFileMultipartCommand request, string filePath)
+    private async Task<ChunkMessage> SendToQueueAsync(UploadFileMultipartCommand request, string filePath, Guid id)
     {
         var chunkMessage = new ChunkMessage
         {
@@ -78,7 +79,8 @@ public class UploadFileMultipartHandler(
             FilePath = filePath,
             ChunkIndex = request.ChunkIndex,
             TotalChunks = request.TotalChunks,
-            FileName = request.FileName
+            FileName = request.FileName,
+            Id = id
         };
 
         var message = JsonSerializer.Serialize(chunkMessage);

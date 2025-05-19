@@ -101,7 +101,7 @@ namespace EStore.Application.Services.RabbitMQ
                         // Check if all chunks are received
                         if (messagesForFile.Count == message.TotalChunks)
                         {
-                            var id = message.Id;
+                            var id = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
 
                             // Verify all chunks exist in S3
                             if (AreAllChunksAvailable(message))
