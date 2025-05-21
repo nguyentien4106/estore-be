@@ -216,8 +216,9 @@ namespace EStore.Application.Services.RabbitMQ
                 else
                 {
                     _logger.LogError($"Error uploading file {message.FileId} to Telegram: {result.Message}");
+                    return AppResponse<TeleFileEntity>.Error(result.Message);
                 }
-                return result;
+                return AppResponse<TeleFileEntity>.Success(result.Data);
             }
             catch (Exception ex)
             {
@@ -235,12 +236,24 @@ namespace EStore.Application.Services.RabbitMQ
             try{
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
-                //var file = await context.TeleFileEntities.FindAsync(id);
                 _logger.LogInformation($"Updating file {id} to {FileStatus.Uploaded}");
-
-                teleFileEntity.Id = id;
-                teleFileEntity.FileStatus = FileStatus.Uploaded;
-                context.TeleFileEntities.Update(teleFileEntity);
+                var file = await context.TeleFileEntities.FindAsync(id);
+                if(file is null)
+                {
+                    _logger.LogError($"File {id} not found");
+                    return;
+                }
+                file.FileStatus = FileStatus.Uploaded;
+                file.FileSize = teleFileEntity.FileSize;
+                file.FileId = teleFileEntity.FileId;
+                file.MessageId = teleFileEntity.MessageId;
+                file.AccessHash = teleFileEntity.AccessHash;
+                file.Flags = teleFileEntity.Flags;
+                file.FileReference = teleFileEntity.FileReference;
+                file.Width = teleFileEntity.Width;
+                file.Height = teleFileEntity.Height;
+                file.DcId = teleFileEntity.DcId;
+                file.Thumbnail = teleFileEntity.Thumbnail;
                 await context.CommitAsync();
             }
             catch (Exception ex)
