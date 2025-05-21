@@ -8,6 +8,7 @@ using EStore.Application.Models.Files;
 using System.Text.Json;
 using EStore.Application.Services.Telegram;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EStore.Application.Services.RabbitMQ
 {
@@ -19,15 +20,19 @@ namespace EStore.Application.Services.RabbitMQ
 
         private IConnection? _connection;
         private readonly IChannel _producerChannel;
+        private IChannel _consumerChannel;
         private readonly ITelegramService _telegramService;
         
         private readonly IServiceScopeFactory _serviceScopeFactory;
+
+        private readonly ILogger<RabbitMQService> _logger;
         private readonly ConcurrentDictionary<string, ConcurrentBag<(ChunkMessage Message, ulong DeliveryTag)>> _messageStore = new();
 
         public RabbitMQService(
             RabbitMQConfiguration rabbitMQOptions,
             ITelegramService telegramService,
-            IServiceScopeFactory factory)
+            IServiceScopeFactory factory,
+            ILogger<RabbitMQService> logger)
         {
             _telegramService = telegramService;
             _serviceScopeFactory = factory;
@@ -46,15 +51,17 @@ namespace EStore.Application.Services.RabbitMQ
             _producerChannel.QueueDeclareAsync(_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null).GetAwaiter();
             _producerChannel.QueueBindAsync(_queueName, _exchangeName, "chunk").GetAwaiter();
 
+            _logger = logger;
         }
 
         public async Task<bool> ProducerAsync(string message)
         {
             if (_connection is null || !_connection.IsOpen || _producerChannel is null)
             {
-                Console.WriteLine("RabbitMQ channel is not available for producer.");
+                _logger.LogError("RabbitMQ channel is not available for producer.");
                 return false;
             }
+
             var channel = _producerChannel;
             try
             {
@@ -67,12 +74,13 @@ namespace EStore.Application.Services.RabbitMQ
                     mandatory: true,
                     basicProperties: properties,
                     body: body);
-                Console.WriteLine($"Sent message to {_queueName}: {message}");
+
+                _logger.LogInformation($"Sent message to {_queueName}: {message}");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending message via ProducerAsync: {ex.Message}");
+                _logger.LogError($"Error sending message via ProducerAsync: {ex.Message}");
                 return false;
             }
         }
@@ -81,72 +89,63 @@ namespace EStore.Application.Services.RabbitMQ
         {
             try
             {
-                var channel = await _connection.CreateChannelAsync();
-                await channel.QueueDeclareAsync(_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                await channel.QueueBindAsync(_queueName, _exchangeName, "chunk");
+                _consumerChannel = await _connection.CreateChannelAsync();
+                await _consumerChannel.QueueDeclareAsync(_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                await _consumerChannel.QueueBindAsync(_queueName, _exchangeName, "chunk");
 
-                var consumer = new AsyncEventingBasicConsumer(channel);
-                consumer.ReceivedAsync += async (model, ea) =>
-                {
-                    try
-                    {
-                        var body = ea.Body.ToArray();
-                        var message = JsonSerializer.Deserialize<ChunkMessage>(Encoding.UTF8.GetString(body));
-                        Console.WriteLine($"Received message for chunk {message.ChunkIndex} of file {message.FileId}");
+                var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
+                consumer.ReceivedAsync += HandleReceivedMessageAsync;
 
-                        // Store message and delivery tag
-                        var messagesForFile = _messageStore.GetOrAdd(message.FileId, _ => new ConcurrentBag<(ChunkMessage, ulong)>());
-                        messagesForFile.Add((message, ea.DeliveryTag));
+                var result = await _consumerChannel.BasicConsumeAsync(_queueName, autoAck: false, consumerTag, consumer);
+                _logger.LogInformation($"[{consumerTag}] Consumer started on queue '{_queueName}'. Waiting for messages.");
 
-                        // Check if all chunks are received
-                        if (messagesForFile.Count == message.TotalChunks)
-                        {
-                            var id = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
-
-                            // Verify all chunks exist in S3
-                            if (AreAllChunksAvailable(message))
-                            {
-                                var mergedFileStream = await MergeChunksAsync(message);
-                                await UploadToTelegramAsync(mergedFileStream, message);
-                                await UpdateDatabaseAsync(id, message.UserId);
-                                // Acknowledge all messages for this file
-                                await CleanUpAsync(channel, message, messagesForFile);
-
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Not all chunks available in S3 for file {message.FileId}. Waiting...");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Waiting for {message.TotalChunks - messagesForFile.Count} more chunks for file {message.FileId}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error processing message: {ex.Message}");
-                        await channel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
-                    }
-                };
-
-                var result = await channel.BasicConsumeAsync(_queueName, autoAck: false, consumerTag, consumer);
-                Console.WriteLine($"[{consumerTag}] Consumer started on queue '{_queueName}'. Waiting for messages.");
                 return AppResponse<string>.Success(result);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting consumer [{consumerTag}]: {ex.Message}");
+                _logger.LogError($"Error starting consumer [{consumerTag}]: {ex.Message}");
                 return AppResponse<string>.Error(ex.Message);
             }
         }
 
-        private bool AreAllChunksAvailable(ChunkMessage message)
+        private async Task HandleReceivedMessageAsync(object model, BasicDeliverEventArgs ea)
         {
-            // get number of chunks in directory
-            var directoryPath = Path.Combine(AppContext.BaseDirectory, "temps", message.UserId, message.FileId);
-            var chunks = Directory.GetFiles(directoryPath);
-            return chunks.Length == message.TotalChunks;
+            Stream? mergedFileStream = null;
+            try
+            {
+                var body = ea.Body.ToArray();
+                var message = JsonSerializer.Deserialize<ChunkMessage>(Encoding.UTF8.GetString(body));
+                _logger.LogInformation($"Received message for chunk {message.ChunkIndex} of file {message.FileId}");
+
+                var messagesForFile = _messageStore.GetOrAdd(message.FileId, _ => []);
+                messagesForFile.Add((message, ea.DeliveryTag));
+
+                if (messagesForFile.Count == message.TotalChunks)
+                {
+                    var id = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
+
+                    mergedFileStream = await MergeChunksAsync(message);
+                    var teleFileEntity = await UploadToTelegramAsync(mergedFileStream, message);
+                    if(teleFileEntity.Succeed)
+                    {
+                        await UpdateDatabaseAsync(id, teleFileEntity.Data);
+                        await CleanUpAsync(_consumerChannel, message, messagesForFile);
+                    }
+                    else {
+                        _logger.LogError($"Error uploading file {message.FileId} to Telegram: {teleFileEntity.Message}");
+                        await _consumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error processing message: {ex.Message}");
+                await _consumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+            }
+            finally
+            {
+                mergedFileStream?.Close();
+            }
         }
 
         private async Task<Stream> MergeChunksAsync(ChunkMessage message)
@@ -156,14 +155,12 @@ namespace EStore.Application.Services.RabbitMQ
                 var filePath = Path.Combine(AppContext.BaseDirectory, "temps", message.UserId, message.FileId);
                 var chunks = Directory.GetFiles(filePath);
 
-                // store to local disk
                 var mergedFilePath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId, message.FileName);
 
-                // Ensure the directory exists before writing the file
                 var mergedFilePathDirectory = Path.GetDirectoryName(mergedFilePath);
                 if (mergedFilePathDirectory != null && !Directory.Exists(mergedFilePathDirectory))
                 {
-                    Directory.CreateDirectory(mergedFilePathDirectory); // This creates all directories in the path if they don't exist
+                    Directory.CreateDirectory(mergedFilePathDirectory);
                 }
                 
                 var mergedFileStream = File.Create(mergedFilePath);
@@ -174,12 +171,12 @@ namespace EStore.Application.Services.RabbitMQ
                         await chunkFileStream.CopyToAsync(mergedFileStream);
                     }
                 }
-                Console.WriteLine($"Merged file {message.FileId} into {mergedFilePath}");   
+
                 return mergedFileStream;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in MergeChunksAsync: {ex.Message}");
+                _logger.LogError($"Error in MergeChunksAsync: {ex.Message}");
                 throw;
             }
         }
@@ -198,7 +195,7 @@ namespace EStore.Application.Services.RabbitMQ
             _messageStore.TryRemove(message.FileId, out _);
         }
 
-        private async Task UploadToTelegramAsync(Stream mergedFileStream, ChunkMessage message)
+        private async Task<AppResponse<TeleFileEntity>> UploadToTelegramAsync(Stream mergedFileStream, ChunkMessage message)
         {
             try
             {
@@ -208,22 +205,23 @@ namespace EStore.Application.Services.RabbitMQ
                     FileStream = mergedFileStream,
                     FileName = message.FileName,
                     ContentType = message.ContentType,
-                    ContentLength = message.ContentLength,
+                    ContentLength = mergedFileStream.Length,
                 };
                 var result = await _telegramService.UploadFileToStrorageAsync(args, message.UserId);
 
                 if (result.Succeed)
                 {
-                    Console.WriteLine($"Uploaded file {message.FileId} to Telegram");
+                    _logger.LogInformation($"Uploaded file {message.FileId} to Telegram");
                 }
                 else
                 {
-                    Console.WriteLine($"Error uploading file {message.FileId} to Telegram: {result.Message}");
+                    _logger.LogError($"Error uploading file {message.FileId} to Telegram: {result.Message}");
                 }
+                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in UploadToTelegramAsync: {ex.Message}");
+                _logger.LogError($"Error in UploadToTelegramAsync: {ex.Message}");
                 throw;
             }
             finally
@@ -232,18 +230,23 @@ namespace EStore.Application.Services.RabbitMQ
             }
         }
 
-        private async Task UpdateDatabaseAsync(Guid id, string userId)
+        private async Task UpdateDatabaseAsync(Guid id, TeleFileEntity teleFileEntity)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
+            try{
+                using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
-                var file = await context.TeleFileEntities.FindAsync(id);
-                Console.WriteLine($"Updating file {id} to {FileStatus.Uploaded}");
-                if (file != null)
-                {
-                    file.FileStatus = FileStatus.Uploaded;
-                    await context.CommitAsync();
-                }
+                //var file = await context.TeleFileEntities.FindAsync(id);
+                _logger.LogInformation($"Updating file {id} to {FileStatus.Uploaded}");
+
+                teleFileEntity.Id = id;
+                teleFileEntity.FileStatus = FileStatus.Uploaded;
+                context.TeleFileEntities.Update(teleFileEntity);
+                await context.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating database: {ex.Message}");
+                throw;
             }
         }
         
@@ -256,7 +259,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during RabbitMQService Dispose: {ex.Message}");
+                _logger.LogError($"Error during RabbitMQService Dispose: {ex.Message}");
             }
             GC.SuppressFinalize(this);
         }
