@@ -1,36 +1,37 @@
 using System.Text.Json;
+using EStore.Application.Extensions;
 using EStore.Application.Helpers;
 using EStore.Application.Models.Files;
 using EStore.Application.Services.RabbitMQ;
-using EStore.Application.Services.Telegram;
 
 namespace EStore.Application.Commands.Files.UploadFileMultipart;
 
 public class UploadFileMultipartHandler(
     IRabbitMQService queueService,
-    ITelegramService telegramService,
     UserManager<User> userManager,
-    IEStoreDbContext context) : ICommandHandler<UploadFileMultipartCommand, AppResponse<ChunkMessage>>
+    IEStoreDbContext context) : ICommandHandler<UploadFileMultipartCommand, AppResponse<FileEntityResult>>
 {
-    public async Task<AppResponse<ChunkMessage>> Handle(UploadFileMultipartCommand request, CancellationToken cancellationToken)
+    public async Task<AppResponse<FileEntityResult>> Handle(UploadFileMultipartCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByNameAsync(request.UserName);
         if (user is null)
         {
-            return AppResponse<ChunkMessage>.NotFound("User", request.UserName);
+            return AppResponse<FileEntityResult>.NotFound("User", request.UserName);
         }
 
         var filePath = await HandleChunkFile(request);
         var id = Guid.Empty;
+        TeleFileEntity telegramFile = null;
+
         if (request.ChunkIndex == request.TotalChunks - 1)
         {
-            var telegramFile = new TeleFileEntity
+            telegramFile = new TeleFileEntity
             {
                 FileName = request.FileName,
                 FileSize = request.File.Length,
                 FileType = FileHelper.DetermineFileType(request.FileName),
                 UserId = request.UserId,
-                ContentType = request.File.ContentType,
+                ContentType = request.ContentType,
                 Extension = Path.GetExtension(request.FileName),
                 FileStatus = FileStatus.Uploading,
             };
@@ -39,29 +40,25 @@ public class UploadFileMultipartHandler(
             id = telegramFile.Id;
         }
 
-        var chunkMessage = await SendToQueueAsync(request, filePath, id);
+        await SendToQueueAsync(request, filePath, id);
 
-        return AppResponse<ChunkMessage>.Success(chunkMessage);
+        return AppResponse<FileEntityResult>.Success(telegramFile?.ToFileEntityResponse());
     }
 
     private async Task<string> HandleChunkFile(UploadFileMultipartCommand command)
     {
         var file = command.File;
-        var fileId = command.FileId;
         var chunkIndex = command.ChunkIndex;
         using var stream = file.OpenReadStream();
 
-        // store to local disk
-        var filePath = Path.Combine(AppContext.BaseDirectory, "temps", command.UserId, command.FileId, chunkIndex.ToString());
+        var filePath = FileHelper.GetTempFilePathPart(command.UserId, command.FileId, chunkIndex);
 
-        // Ensure the directory exists before writing the file
         var directoryPath = Path.GetDirectoryName(filePath);
         if (directoryPath != null && !Directory.Exists(directoryPath))
         {
-            Directory.CreateDirectory(directoryPath); // This creates all directories in the path if they don't exist
+            Directory.CreateDirectory(directoryPath);
         }
 
-        // Write chunk to file
         using (FileStream outputStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
         {
             await stream.CopyToAsync(outputStream);

@@ -150,4 +150,23 @@ public static class FileHelper
         return Path.GetExtension(fileName).TrimStart('.');
     }
 
+    public static string GetTempFilePathPart(string userId, string fileId, int chunkIndex = -1){
+
+        return chunkIndex != -1 ? 
+            Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId, chunkIndex.ToString()) 
+            : Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId);
+    }
+
+    public static string GetMimeTypeTelegram(string fileName){
+        return  Path.GetExtension(fileName)?.ToLowerInvariant() switch
+			{
+				".jpg" or ".jpeg" or ".png" or ".bmp" => "photo",
+				".mp4" => "video",
+				".gif" => "image/gif",
+				".webp" => "image/webp",
+				".mp3" => "audio/mpeg",
+				".wav" => "audio/x-wav",
+				_ => "",
+			};
+    }
 } 

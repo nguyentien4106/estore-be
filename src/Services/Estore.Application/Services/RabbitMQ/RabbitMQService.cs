@@ -9,6 +9,8 @@ using System.Text.Json;
 using EStore.Application.Services.Telegram;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using EStore.Application.Helpers;
+using System.Linq;
 
 namespace EStore.Application.Services.RabbitMQ
 {
@@ -129,7 +131,7 @@ namespace EStore.Application.Services.RabbitMQ
                     if(teleFileEntity.Succeed)
                     {
                         await UpdateDatabaseAsync(id, teleFileEntity.Data);
-                        await CleanUpAsync(_consumerChannel, message, messagesForFile);
+                        //await CleanUpAsync(_consumerChannel, message, messagesForFile);
                     }
                     else {
                         _logger.LogError($"Error uploading file {message.FileId} to Telegram: {teleFileEntity.Message}");
@@ -152,9 +154,13 @@ namespace EStore.Application.Services.RabbitMQ
         {
             try
             {
-                var filePath = Path.Combine(AppContext.BaseDirectory, "temps", message.UserId, message.FileId);
+                var filePath = FileHelper.GetTempFilePathPart(message.UserId, message.FileId);
                 var chunks = Directory.GetFiles(filePath);
-
+                // order by chunkindx
+                chunks = chunks.OrderBy(chunk => chunk.Split('_').Last()).ToArray();
+                foreach(var chunk in chunks){
+                    _logger.LogInformation($"Chunk: {chunk}");
+                }
                 var mergedFilePath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId, message.FileName);
 
                 var mergedFilePathDirectory = Path.GetDirectoryName(mergedFilePath);

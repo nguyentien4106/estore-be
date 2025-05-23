@@ -1,3 +1,4 @@
+using EStore.Application.Helpers;
 using EStore.Application.Models.Files;
 using TL;
 
@@ -10,15 +11,14 @@ public class UploadVideoFileHandler : IUploadFileHandler
         try{
             using(args.FileStream){
                 var videoUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName);
-
                 var video = new InputMediaUploadedDocument {
                     file = videoUploaded, 
-                    mime_type = args.ContentType,
-                    attributes = new[] {
+                    mime_type = FileHelper.GetMimeTypeTelegram(args.FileName),//args.ContentType,
+                    attributes = [
                         new DocumentAttributeVideo {
                             flags = DocumentAttributeVideo.Flags.supports_streaming,
                         },
-                    },
+                    ],
                     
                 };
 

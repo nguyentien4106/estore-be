@@ -9,5 +9,6 @@ public record UploadFileMultipartRequest(
     string FileName,
     string UserId,
     string FileId,
-    string UserName
+    string UserName,
+    string ContentType
 );

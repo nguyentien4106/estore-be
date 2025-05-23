@@ -10,25 +10,33 @@ public class UploadFileMultipart : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        
-        // Plus tier: 5 GB limit
         app.MapPost("/files/multipart", async (
             [FromForm] UploadFileMultipartRequest request, 
             ISender sender,
             CancellationToken cancellationToken
         ) =>
         {
-            var command = new UploadFileMultipartCommand(request.File, request.ChunkIndex, request.TotalChunks, request.FileName, request.UserId, request.FileId, request.UserName);
+            var command = new UploadFileMultipartCommand(
+                request.File,
+                request.ChunkIndex, 
+                request.TotalChunks, 
+                request.FileName, 
+                request.UserId, 
+                request.FileId, 
+                request.UserName, 
+                request.ContentType
+            );
+
             var result = await sender.Send(command, cancellationToken);
 
             return Results.Ok(result);
             
         })
         .Accepts<UploadFileMultipartRequest>("multipart/form-data")
-        .Produces<AppResponse<ChunkMessage>>(StatusCodes.Status201Created)
+        .Produces<AppResponse<FileEntityResult>>(StatusCodes.Status201Created)
         .WithName("UploadFileMultipart")
         .WithTags("UploadFile")
         .DisableAntiforgery()
-        .WithMetadata(new RequestFormLimitsAttribute { MultipartBodyLengthLimit = FileSizeLimits.PlusTierLimit }); // 5 GB
+        .WithMetadata(new RequestFormLimitsAttribute { MultipartBodyLengthLimit = FileSizeLimits.ProTierLimit }); // 5 GB
     }
 }

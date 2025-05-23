@@ -10,5 +10,6 @@ public record UploadFileMultipartCommand(
     string FileName,
     string UserId,
     string FileId,
-    string UserName
-) : ICommand<AppResponse<ChunkMessage>>;
+    string UserName,
+    string ContentType
+) : ICommand<AppResponse<FileEntityResult>>;
