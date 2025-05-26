@@ -12,7 +12,7 @@ public class UploadImageFileHandler() : IUploadFileHandler
             var photoUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName);
 
             var image = new InputMediaUploadedPhoto {
-                file = photoUploaded,
+                file = photoUploaded
             };
 
             return image;

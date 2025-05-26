@@ -8,12 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="EStore\**" />
-      <EmbeddedResource Remove="EStore\**" />
-      <None Remove="EStore\**" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Auth\BuildingBlocks.Auth.csproj" />
       <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
       <ProjectReference Include="..\EStore.Domain\EStore.Domain.csproj" />
@@ -22,6 +16,7 @@
     <ItemGroup>
       <PackageReference Include="AWSSDK.S3" Version="3.7.405.10" />
       <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+      <PackageReference Include="MediaInfo.DotNetWrapper" Version="1.0.7" />
       <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.2" />
       <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.2" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
@@ -29,7 +24,6 @@
       <PackageReference Include="Polly" Version="8.5.2" />
       <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
       <PackageReference Include="SendGrid" Version="9.29.3" />
-      <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.1.2" />
       <PackageReference Include="System.Text.Json" Version="8.0.0" />
       <PackageReference Include="TDLib" Version="1.8.45" />
@@ -39,9 +33,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Services\Telegram\Strategies\" />
+      <Folder Include="Services\**" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Services\**" />
+      <Folder Include="Helpers\**" />
     </ItemGroup>
 </Project>

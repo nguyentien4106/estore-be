@@ -126,11 +126,11 @@ namespace EStore.Application.Services.RabbitMQ
                 {
                     var id = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
 
-                    mergedFileStream = await MergeChunksAsync(message);
-                    var teleFileEntity = await UploadToTelegramAsync(mergedFileStream, message);
+                    (mergedFileStream, var mergedFilePath) = await MergeChunksAsync(message);
+                    var teleFileEntity = await UploadToTelegramAsync(mergedFileStream, message, mergedFilePath);
                     if(teleFileEntity.Succeed)
                     {
-                        await UpdateDatabaseAsync(id, teleFileEntity.Data);
+                        //await UpdateDatabaseAsync(id, teleFileEntity.Data);
                         //await CleanUpAsync(_consumerChannel, message, messagesForFile);
                     }
                     else {
@@ -150,17 +150,14 @@ namespace EStore.Application.Services.RabbitMQ
             }
         }
 
-        private async Task<Stream> MergeChunksAsync(ChunkMessage message)
+        private async Task<(Stream, string)> MergeChunksAsync(ChunkMessage message)
         {
             try
             {
                 var filePath = FileHelper.GetTempFilePathPart(message.UserId, message.FileId);
                 var chunks = Directory.GetFiles(filePath);
-                // order by chunkindx
-                chunks = chunks.OrderBy(chunk => chunk.Split('_').Last()).ToArray();
-                foreach(var chunk in chunks){
-                    _logger.LogInformation($"Chunk: {chunk}");
-                }
+                // order by chunk index
+                chunks = [.. chunks.OrderBy(chunk => int.Parse(chunk.Split("\\").Last()))];
                 var mergedFilePath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId, message.FileName);
 
                 var mergedFilePathDirectory = Path.GetDirectoryName(mergedFilePath);
@@ -178,7 +175,7 @@ namespace EStore.Application.Services.RabbitMQ
                     }
                 }
 
-                return mergedFileStream;
+                return (mergedFileStream, mergedFilePath);
             }
             catch (Exception ex)
             {
@@ -201,7 +198,7 @@ namespace EStore.Application.Services.RabbitMQ
             _messageStore.TryRemove(message.FileId, out _);
         }
 
-        private async Task<AppResponse<TeleFileEntity>> UploadToTelegramAsync(Stream mergedFileStream, ChunkMessage message)
+        private async Task<AppResponse<TeleFileEntity>> UploadToTelegramAsync(Stream mergedFileStream, ChunkMessage message, string mergedFilePath)
         {
             try
             {
@@ -212,6 +209,7 @@ namespace EStore.Application.Services.RabbitMQ
                     FileName = message.FileName,
                     ContentType = message.ContentType,
                     ContentLength = mergedFileStream.Length,
+                    FilePath = mergedFilePath,
                 };
                 var result = await _telegramService.UploadFileToStrorageAsync(args, message.UserId);
 

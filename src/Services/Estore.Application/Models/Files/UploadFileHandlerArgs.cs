@@ -1,4 +1,5 @@
 ﻿
+using TL;
 namespace EStore.Application.Models.Files;
 
 public class UploadFileHandlerArgs
@@ -14,4 +15,6 @@ public class UploadFileHandlerArgs
     public string? ContentType { get; set; } = string.Empty;
 
     public long ContentLength { get; set; } 
+
+    public string? FilePath { get; set; } = string.Empty;
 }

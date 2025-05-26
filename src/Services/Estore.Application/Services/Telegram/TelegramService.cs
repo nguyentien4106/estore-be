@@ -32,6 +32,7 @@ public class TelegramService : ITelegramService
         try
         {
             _client = new Client(Config);
+            _client.MTProxyUrl = "https://t.me/proxy?server=87.229.100.252&port=443&secret=eeRighJJvXrFGRMCIMJdCQ";
             _client.OnUpdates += HandleUpdates;
             _client.OnOther += HandleOtherEvents;
             
@@ -107,7 +108,6 @@ public class TelegramService : ITelegramService
         try
         {
             var fileType = FileHelper.DetermineFileType(args.FileName);
-            Console.WriteLine($"File type: {fileType} {fileType.ToString()}");
             var uploadHandler = TelegramFileHandlerFactory.GetUploadFileHandler(fileType);
             args.Client = _client;
             var uploadedFile = await uploadHandler.UploadFileAsync(args);
@@ -146,6 +146,7 @@ public class TelegramService : ITelegramService
             return AppResponse<TeleFileEntity>.Error(ex.Message);
     }
     }
+    
     private static AppResponse<TeleFileEntity> CreateTeleFileLocationFromMedia(MessageMedia media, UploadFileHandlerArgs args, string userId, int messageId)
     {
         var teleFile = new TeleFileEntity
@@ -255,4 +256,5 @@ public class TelegramService : ITelegramService
         }
         return Task.CompletedTask;
     }
+
 }

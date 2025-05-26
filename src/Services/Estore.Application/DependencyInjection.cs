@@ -11,7 +11,6 @@ using EStore.Application.Services.R2PresignUrl;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using EStore.Application.Services.RabbitMQ;
-using EStore.Application.Services.Webhooks;
 using EStore.Application.Services.BackgroundServices;
 namespace EStore.Application;
 
