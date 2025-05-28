@@ -28,8 +28,7 @@ public static class DependencyInjection
         services.AddConfigurationObjects(configuration);
         services.AddFeatureManagement();
         services.AddServices();
-        services.AddSubscriptionMonitorService();
-        services.AddMergeFileWorkerService();
+        services.AddWorkerServices();
         services.AddR2PresignedUrlServices(configuration);
         
         return services;
@@ -74,17 +73,14 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddSubscriptionMonitorService(this IServiceCollection services)
+    private static IServiceCollection AddWorkerServices(this IServiceCollection services)
     {
-        services.AddHostedService<SubscriptionMonitorService>();
+        services.AddHostedService<PushFileWorkerService>();
+        services.AddHostedService<MergeFileWorkerService>();
+        services.AddHostedService<PushFileWorkerService>();
         return services;
     }
 
-    private static IServiceCollection AddMergeFileWorkerService(this IServiceCollection services)
-    {
-        services.AddHostedService<MergeFileWorkerService>();
-        return services;
-    }
 
     private static IServiceCollection AddR2PresignedUrlServices(this IServiceCollection services, IConfiguration configuration)
     {

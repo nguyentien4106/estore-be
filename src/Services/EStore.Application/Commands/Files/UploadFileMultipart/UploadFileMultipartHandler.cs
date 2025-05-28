@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EStore.Application.Constants;
 using EStore.Application.Extensions;
 using EStore.Application.Helpers;
 using EStore.Application.Models.Files;
@@ -81,7 +82,7 @@ public class UploadFileMultipartHandler(
         };
 
         var message = JsonSerializer.Serialize(chunkMessage);
-        await queueService.ProducerAsync(message);
+        await queueService.ProducerAsync(QueueConstants.MergeFileQueue, message);
 
         return chunkMessage;
     }

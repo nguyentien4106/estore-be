@@ -1,19 +1,16 @@
 using EStore.Application.Services.RabbitMQ;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EStore.Application.Services.BackgroundServices
 {
-    public class MergeFileWorkerService : BackgroundService
+    public class PushFileWorkerService : BackgroundService
     {
-        private readonly ILogger<MergeFileWorkerService> _logger;
+        private readonly ILogger<PushFileWorkerService> _logger;
         private readonly IRabbitMQService _rabbitMQService;
-        private const string ConsumerTag = "merge_file_worker"; // Unique tag for this consumer
+        private const string ConsumerTag = "push_file_worker"; // Unique tag for this consumer
 
-        public MergeFileWorkerService(ILogger<MergeFileWorkerService> logger, IRabbitMQService rabbitMQService)
+        public PushFileWorkerService(ILogger<PushFileWorkerService> logger, IRabbitMQService rabbitMQService)
         {
             _logger = logger;
             _rabbitMQService = rabbitMQService;
@@ -28,7 +25,7 @@ namespace EStore.Application.Services.BackgroundServices
 
             try
             {
-                await _rabbitMQService.MergeFileConsumerAsync(ConsumerTag);
+                await _rabbitMQService.PushFileConsumerAsync(ConsumerTag);
             }
             catch (OperationCanceledException)
             {
@@ -48,7 +45,6 @@ namespace EStore.Application.Services.BackgroundServices
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("MergeFileWorkerService is stopping via StopAsync.");
-            // Perform any cleanup if necessary, though RabbitMQService handles its own Dispose
             await base.StopAsync(stoppingToken);
         }
     }

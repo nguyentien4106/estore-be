@@ -11,20 +11,29 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using EStore.Application.Helpers;
 using System.Linq;
+using EStore.Application.Constants;
 
 namespace EStore.Application.Services.RabbitMQ
 {
+    public class PushFileMessage
+    {
+        public string FilePath { get; set; }
+        public Guid FileId { get; set; }
+        public string UserId { get; set; }
+        public string FileName { get; set; }
+        public string ContentType { get; set; }
+        public long ContentLength { get; set; }
+    }
+
     public class RabbitMQService : IRabbitMQService, IDisposable
     {
         private readonly ConnectionFactory _factory;
-        private readonly string _queueName = "chunk";
-        private const string _exchangeName = "file-exchange";
-
         private IConnection? _connection;
         private readonly IChannel _producerChannel;
-        private IChannel _consumerChannel;
+        private IChannel _mergeFileConsumerChannel;
+        private IChannel _pushFileConsumerChannel;
         private readonly ITelegramService _telegramService;
-        
+
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         private readonly ILogger<RabbitMQService> _logger;
@@ -49,14 +58,14 @@ namespace EStore.Application.Services.RabbitMQ
             _connection = _factory.CreateConnectionAsync().GetAwaiter().GetResult();
 
             _producerChannel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
-            _producerChannel.ExchangeDeclareAsync(_exchangeName, ExchangeType.Direct, durable: true).GetAwaiter();
-            _producerChannel.QueueDeclareAsync(_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null).GetAwaiter();
-            _producerChannel.QueueBindAsync(_queueName, _exchangeName, "chunk").GetAwaiter();
+            _producerChannel.ExchangeDeclareAsync(QueueConstants.ExchangeName, ExchangeType.Direct, durable: true).GetAwaiter();
+            _producerChannel.QueueDeclareAsync(QueueConstants.MergeFileQueue, durable: true, exclusive: false, autoDelete: false, arguments: null).GetAwaiter();
+            _producerChannel.QueueBindAsync(QueueConstants.MergeFileQueue, QueueConstants.ExchangeName, "chunk").GetAwaiter();
 
             _logger = logger;
         }
 
-        public async Task<bool> ProducerAsync(string message)
+        public async Task<bool> ProducerAsync(string queueName, string message)
         {
             if (_connection is null || !_connection.IsOpen || _producerChannel is null)
             {
@@ -71,13 +80,11 @@ namespace EStore.Application.Services.RabbitMQ
                 var properties = new BasicProperties() { Persistent = true };
 
                 await channel.BasicPublishAsync(
-                    exchange: _exchangeName,
-                    routingKey: _queueName,
+                    exchange: QueueConstants.ExchangeName,
+                    routingKey: queueName,
                     mandatory: true,
                     basicProperties: properties,
                     body: body);
-
-                _logger.LogInformation($"Sent message to {_queueName}: {message}");
                 return true;
             }
             catch (Exception ex)
@@ -87,37 +94,33 @@ namespace EStore.Application.Services.RabbitMQ
             }
         }
 
-        public async Task<AppResponse<string>> ConsumerAsync(string consumerTag)
+        public async Task MergeFileConsumerAsync(string consumerTag)
         {
             try
             {
-                _consumerChannel = await _connection.CreateChannelAsync();
-                await _consumerChannel.QueueDeclareAsync(_queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                await _consumerChannel.QueueBindAsync(_queueName, _exchangeName, "chunk");
+                _mergeFileConsumerChannel = await _connection.CreateChannelAsync();
+                await _mergeFileConsumerChannel.QueueDeclareAsync(QueueConstants.MergeFileQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                await _mergeFileConsumerChannel.QueueBindAsync(QueueConstants.MergeFileQueue, QueueConstants.ExchangeName, QueueConstants.MergeFileQueue);
 
-                var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-                consumer.ReceivedAsync += HandleReceivedMessageAsync;
+                var consumer = new AsyncEventingBasicConsumer(_mergeFileConsumerChannel);
+                consumer.ReceivedAsync += HandleReceivedMessageMergeFileAsync;
 
-                var result = await _consumerChannel.BasicConsumeAsync(_queueName, autoAck: false, consumerTag, consumer);
-                _logger.LogInformation($"[{consumerTag}] Consumer started on queue '{_queueName}'. Waiting for messages.");
-
-                return AppResponse<string>.Success(result);
+                await _mergeFileConsumerChannel.BasicConsumeAsync(QueueConstants.MergeFileQueue, autoAck: false, consumerTag, consumer);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error starting consumer [{consumerTag}]: {ex.Message}");
-                return AppResponse<string>.Error(ex.Message);
+                throw;
             }
         }
 
-        private async Task HandleReceivedMessageAsync(object model, BasicDeliverEventArgs ea)
+        private async Task HandleReceivedMessageMergeFileAsync(object model, BasicDeliverEventArgs ea)
         {
             Stream? mergedFileStream = null;
             try
             {
                 var body = ea.Body.ToArray();
                 var message = JsonSerializer.Deserialize<ChunkMessage>(Encoding.UTF8.GetString(body));
-                _logger.LogInformation($"Received message for chunk {message.ChunkIndex} of file {message.FileId}");
 
                 var messagesForFile = _messageStore.GetOrAdd(message.FileId, _ => []);
                 messagesForFile.Add((message, ea.DeliveryTag));
@@ -126,23 +129,27 @@ namespace EStore.Application.Services.RabbitMQ
                 {
                     var id = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
 
-                    (mergedFileStream, var mergedFilePath) = await MergeChunksAsync(message);
-                    var teleFileEntity = await UploadToTelegramAsync(mergedFileStream, message, mergedFilePath);
-                    if(teleFileEntity.Succeed)
+                    var mergedFilePath = await MergeChunksAsync(message);
+                    if(string.IsNullOrEmpty(mergedFilePath))
                     {
-                        //await UpdateDatabaseAsync(id, teleFileEntity.Data);
-                        //await CleanUpAsync(_consumerChannel, message, messagesForFile);
+                        _logger.LogError($"Error merging chunks for file {message.FileId}, {mergedFilePath}");
+                        return;
                     }
-                    else {
-                        _logger.LogError($"Error uploading file {message.FileId} to Telegram: {teleFileEntity.Message}");
-                        await _consumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
-                    }
+                    var pushFileMessage = new PushFileMessage
+                    {
+                        FilePath = mergedFilePath,
+                        FileId = id,
+                        UserId = message.UserId
+                    };
+                    _logger.LogInformation($"Pushing {QueueConstants.PushFileQueue} with message {JsonSerializer.Serialize(pushFileMessage)}");
+                    await ProducerAsync(QueueConstants.PushFileQueue, JsonSerializer.Serialize(pushFileMessage));
+                    await CleanUpMergeFileAsync(_mergeFileConsumerChannel, message, messagesForFile);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error processing message: {ex.Message}");
-                await _consumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                await _mergeFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
             }
             finally
             {
@@ -150,14 +157,15 @@ namespace EStore.Application.Services.RabbitMQ
             }
         }
 
-        private async Task<(Stream, string)> MergeChunksAsync(ChunkMessage message)
+        private async Task<string> MergeChunksAsync(ChunkMessage message)
         {
             try
             {
                 var filePath = FileHelper.GetTempFilePathPart(message.UserId, message.FileId);
                 var chunks = Directory.GetFiles(filePath);
+
                 // order by chunk index
-                chunks = [.. chunks.OrderBy(chunk => int.Parse(chunk.Split("\\").Last()))];
+                chunks = [.. chunks.OrderBy(chunk => int.Parse(chunk.Split("/").Last()))];
                 var mergedFilePath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId, message.FileName);
 
                 var mergedFilePathDirectory = Path.GetDirectoryName(mergedFilePath);
@@ -165,31 +173,27 @@ namespace EStore.Application.Services.RabbitMQ
                 {
                     Directory.CreateDirectory(mergedFilePathDirectory);
                 }
-                
-                var mergedFileStream = File.Create(mergedFilePath);
+
+                using var mergedFileStream = File.Create(mergedFilePath);
                 foreach (var chunk in chunks)
                 {
-                    using (var chunkFileStream = File.OpenRead(chunk))
-                    {
-                        await chunkFileStream.CopyToAsync(mergedFileStream);
-                    }
+                    using var chunkFileStream = File.OpenRead(chunk);
+                    await chunkFileStream.CopyToAsync(mergedFileStream);
                 }
 
-                return (mergedFileStream, mergedFilePath);
+                return mergedFilePath;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error in MergeChunksAsync: {ex.Message}");
-                throw;
+                return string.Empty;
             }
         }
 
-        private async Task CleanUpAsync(IChannel channel, ChunkMessage message, ConcurrentBag<(ChunkMessage, ulong)> messagesForFile)
+        private async Task CleanUpMergeFileAsync(IChannel channel, ChunkMessage message, ConcurrentBag<(ChunkMessage, ulong)> messagesForFile)
         {
             var filePath = Path.Combine(AppContext.BaseDirectory, "temps", message.UserId, message.FileId);
-            var resultPath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId);
             Directory.Delete(filePath, true);
-            Directory.Delete(resultPath, true);
 
             foreach (var (_, deliveryTag) in messagesForFile)
             {
@@ -198,17 +202,22 @@ namespace EStore.Application.Services.RabbitMQ
             _messageStore.TryRemove(message.FileId, out _);
         }
 
-        private async Task<AppResponse<TeleFileEntity>> UploadToTelegramAsync(Stream mergedFileStream, ChunkMessage message, string mergedFilePath)
+        private void CleanUpPushFile(string filePath)
+        {
+            Directory.Delete(filePath, true);
+        }
+
+        private async Task<AppResponse<TeleFileEntity>> UploadToTelegramAsync(string mergedFilePath, PushFileMessage message)
         {
             try
             {
-                mergedFileStream.Position = 0;
+                using var fileStream = File.OpenRead(mergedFilePath);
                 var args = new UploadFileHandlerArgs
                 {
-                    FileStream = mergedFileStream,
+                    FileStream = fileStream,
                     FileName = message.FileName,
                     ContentType = message.ContentType,
-                    ContentLength = mergedFileStream.Length,
+                    ContentLength = fileStream.Length,
                     FilePath = mergedFilePath,
                 };
                 var result = await _telegramService.UploadFileToStrorageAsync(args, message.UserId);
@@ -229,20 +238,17 @@ namespace EStore.Application.Services.RabbitMQ
                 _logger.LogError($"Error in UploadToTelegramAsync: {ex.Message}");
                 throw;
             }
-            finally
-            {
-                mergedFileStream.Close();
-            }
         }
 
         private async Task UpdateDatabaseAsync(Guid id, TeleFileEntity teleFileEntity)
         {
-            try{
+            try
+            {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
                 _logger.LogInformation($"Updating file {id} to {FileStatus.Uploaded}");
                 var file = await context.TeleFileEntities.FindAsync(id);
-                if(file is null)
+                if (file is null)
                 {
                     _logger.LogError($"File {id} not found");
                     return;
@@ -266,7 +272,7 @@ namespace EStore.Application.Services.RabbitMQ
                 throw;
             }
         }
-        
+
         public void Dispose()
         {
             try
@@ -279,6 +285,59 @@ namespace EStore.Application.Services.RabbitMQ
                 _logger.LogError($"Error during RabbitMQService Dispose: {ex.Message}");
             }
             GC.SuppressFinalize(this);
+        }
+
+        public async Task PushFileConsumerAsync(string consumerTag)
+        {
+            try
+            {
+                _pushFileConsumerChannel = await _connection.CreateChannelAsync();
+                await _pushFileConsumerChannel.QueueDeclareAsync(QueueConstants.PushFileQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                await _pushFileConsumerChannel.QueueBindAsync(QueueConstants.PushFileQueue, QueueConstants.ExchangeName, QueueConstants.PushFileQueue);   
+
+                var consumer = new AsyncEventingBasicConsumer(_pushFileConsumerChannel);
+                consumer.ReceivedAsync += HandleReceivedMessagePushFileAsync;
+
+                await _pushFileConsumerChannel.BasicConsumeAsync(QueueConstants.PushFileQueue, autoAck: false, consumerTag, consumer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error starting consumer [{consumerTag}]: {ex.Message}");
+                throw;
+            }
+        }
+
+        private async Task HandleReceivedMessagePushFileAsync(object model, BasicDeliverEventArgs ea)
+        {
+            try
+            {
+                var body = ea.Body.ToArray();
+                var message = JsonSerializer.Deserialize<PushFileMessage>(Encoding.UTF8.GetString(body));
+                if (message is null)
+                {
+                    _logger.LogError($"Invalid message: {Encoding.UTF8.GetString(body)}");
+                    return;
+                }
+                await _pushFileConsumerChannel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
+
+                var teleFileEntity = await UploadToTelegramAsync(message.FilePath, message);
+                if (teleFileEntity.Succeed)
+                {
+                    _logger.LogInformation($"Uploaded file {message.FileId} to Telegram");
+                    await UpdateDatabaseAsync(message.FileId, teleFileEntity.Data);
+                    CleanUpPushFile(message.FilePath);
+                }
+                else
+                {
+                    _logger.LogError($"Error uploading file {message.FileId} to Telegram: {teleFileEntity.Message}");
+                    await _pushFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error processing message: {ex.Message}");
+                await _pushFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
+            }
         }
     }
 } 
