@@ -32,7 +32,7 @@ public class TelegramService : ITelegramService
         try
         {
             _client = new Client(Config);
-            _client.MTProxyUrl = "https://t.me/proxy?server=87.229.100.252&port=443&secret=eeRighJJvXrFGRMCIMJdCQ";
+            //_client.MTProxyUrl = "https://t.me/proxy?server=87.229.100.252&port=443&secret=eeRighJJvXrFGRMCIMJdCQ";
             _client.OnUpdates += HandleUpdates;
             _client.OnOther += HandleOtherEvents;
             
