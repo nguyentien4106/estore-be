@@ -15,4 +15,5 @@ public interface ITelegramService
 
     Task<AppResponse<TeleFileEntity>> SendMessageAsync(UploadFileHandlerArgs args, string userId);
 
+    Task<AppResponse<string>> CreateNewChannelAsync(string channelName);
 }

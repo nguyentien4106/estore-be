@@ -5,7 +5,10 @@ using EStore.Application.Services.Files;
 using WTelegram;
 using TL;
 using EStore.Application.Models.Files;
-
+using TL.Methods;
+using System.Text.Json;
+using EStore.Application.Data;
+using Microsoft.Extensions.DependencyInjection;
 namespace EStore.Application.Services.Telegram;
 
 public class TelegramService : ITelegramService
@@ -15,12 +18,17 @@ public class TelegramService : ITelegramService
     private ChatBase? _tempFilesPeer;
     private readonly TelegramConfiguration _telegramConfiguration;
     private readonly ILogger<TelegramService> _logger;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public TelegramService(TelegramConfiguration telegramConfiguration, ILogger<TelegramService> logger)
+    public TelegramService(
+        TelegramConfiguration telegramConfiguration, 
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<TelegramService> logger)
     {
         _telegramConfiguration = telegramConfiguration;
         _logger = logger;
-        
+        _serviceScopeFactory = serviceScopeFactory;
+
         if (!InitializeClient().GetAwaiter().GetResult())
         {
             throw new InvalidOperationException("Failed to connect to Telegram");
@@ -49,6 +57,34 @@ public class TelegramService : ITelegramService
             _logger.LogError(ex, "Failed to initialize Telegram client");
             return false;
         }
+    }
+
+    public async Task<AppResponse<string>> CreateNewChannelAsync(string channelName)
+    {
+        try{
+            var result = await _client.Channels_CreateChannel(channelName, "StoreChannel", null, null, 0, false, false, false, false);
+            var chat = result.Chats.First();
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
+            dbContext.Stores.Add(new Store
+            {
+                ChannelId = chat.Value.ID,
+                ChannelName = channelName,
+                MessageCount = 0,
+                Description = "StoreChannel"
+            });
+
+            await dbContext.CommitAsync();
+
+            _logger.LogInformation("Channel created: {Channel}", JsonSerializer.Serialize(result));
+            return AppResponse<string>.Success(channelName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create channel {Channel}", channelName);
+            return AppResponse<string>.Error(ex.Message, channelName);
+        }
+
     }
 
     public async Task<AppResponse<bool>> DeleteMessageAsync(int messageId)
@@ -253,7 +289,15 @@ public class TelegramService : ITelegramService
         foreach (var update in updates.UpdateList)
         {
             Console.WriteLine(update.GetType().Name);
+            switch (update)
+            {
+                case UpdateChannel updateChannel:
+                    Console.WriteLine(updateChannel.channel_id);
+                    Console.WriteLine(updateChannel.GetMBox());
+                    break;
+            }
         }
+        
         return Task.CompletedTask;
     }
 

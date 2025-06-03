@@ -1,0 +1,127 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Rule: Creating New API Endpoints (Commands/Queries)
+
+This rule outlines the steps and conventions for creating new API endpoints (Commands or Queries) in the EStore project. These endpoints should use MediatR for the application logic and Carter for the API exposure, following the folder structure defined in [.cursor/rules/net-api-rule.mdc](mdc:.cursor/rules/net-api-rule.mdc).
+
+**When the user requests to create a new endpoint and specifies it as a "Command" or "Query", gather the following details (if not already provided, ask the user):**
+
+1.  Whether the endpoint is a "Command" or a "Query".
+2.  `{EndPointName}`: A descriptive name for the endpoint or feature, typically in the format `ActionEntity` (e.g., `CreateOrder`, `GetProductDetails`, `GetProductsList`). This name will be used as the `{EndPointName}` placeholder for the files below.
+3.  `{Feature}`: The logical grouping for the API endpoint under `src/Services/EStore.Api/Endpoints/` (e.g., `OrderManagement`, `ProductCatalog`).
+4.  **If it's a "Query", ask (or determine from the prompt): "Is this query for a single item or a list of items?" This will influence the structure of the Request and Response DTOs.**
+
+**Procedure:**
+
+## If the user specifies a "Command":
+
+**1. Application Layer (CQRS Command):**
+   Location: `src/Services/Estore.Application/Commands/{Feature}/{EndPointName}/` (Note: Ensure namespace matches the actual project structure, e.g., `EStore.Application.Commands...`)
+
+   Create the following C# files:
+   *   `{EndPointName}Request.cs`:
+        *   A Data Transfer Object (DTO) representing the data received by the API endpoint.
+        *   This class holds the properties expected in the HTTP request body or parameters.
+        *   Example: For a `CreateOrder` endpoint, `CreateOrderRequest.cs` might contain `CustomerId`, `ProductItems`, etc.
+   *   `{EndPointName}Response.cs`:
+        *   A DTO defining the structure of the response returned by this command's handler.
+        *   Example: `CreateOrderResponse.cs` might contain `OrderId` and `Status`.
+   *   `{EndPointName}Command.cs`:
+        *   The MediatR command object. It implements `MediatR.IRequest<{EndPointName}Response>`.
+        *   It typically takes data from an instance of `{EndPointName}Request.cs` in its constructor or as properties.
+        *   Filename should align with the convention: `{Action}{Entity}Command.cs` (where `{EndPointName}` is `{Action}{Entity}`).
+   *   `{EndPointName}Validator.cs`: (Recommended)
+        *   Implements `FluentValidation.AbstractValidator<{EndPointName}Command>` (or validate the `{EndPointName}Request`).
+        *   Contains validation rules for the command/request object.
+   *   `{EndPointName}Handler.cs`:
+        *   Implements `MediatR.IRequestHandler<{EndPointName}Command, {EndPointName}Response>`.
+        *   Contains the business logic to process the command.
+
+**2. API Layer (Carter Endpoint):**
+   Location: `src/Services/EStore.Api/Endpoints/{Feature}/Commands/`
+
+   Create a Carter module/endpoint file (e.g., `{EndPointName}Endpoints.cs` or `{EndPointName}Module.cs`):
+   *   Implements `Carter.ICarterModule`.
+   *   Defines the HTTP route and method (e.g., POST, PUT, DELETE).
+   *   Inject `MediatR.ISender`.
+   *   In the route handler method:
+        1.  Bind the incoming HTTP request to an instance of `{EndPointName}Request.cs`.
+        2.  Create an instance of `{EndPointName}Command.cs`, populating it from the `{EndPointName}Request` object.
+        3.  Send the command using MediatR: `var mediatRResult = await sender.Send(newlyCreatedCommand);`
+        4.  **Wrap the `mediatRResult` in `BuildingBlocks.Models.AppResponse<T>` for consistency.**
+            *   Example for success: `Results.Ok(AppResponse<{EndPointName}Response>.Success(mediatRResult, "Command executed successfully."));`
+            *   Example for validation failure (if not handled by global exception handler): `Results.BadRequest(AppResponse<object>.Failure("Validation errors", validationErrorMessagesList));`
+            *   Ensure `.Produces<AppResponse<{EndPointName}Response>>(StatusCodes.Status200OK)`, etc., reflect `AppResponse<T>`.
+
+## If the user specifies a "Query":
+
+**(Based on the information gathered, determine if the query is for a single item or a list of items.)**
+
+**For queries that return a list of items, the `GetAllStoresEndpoint` (located in `src/Services/EStore.Api/Endpoints/Stores/Queries/GetAllStoresEndpoints.cs`) and its associated request (`GetAllStoresRequest.cs`), query (`GetAllStoresQuery.cs`), handler (`GetAllStoresHandler.cs`), and response (`GetAllStoresResponse.cs`) in the `EStore.Application.Queries.Stores.GetAllStores` namespace should be used as a primary reference and template. This includes inheriting the request DTO from `BuildingBlocks.Pagination.PaginationRequest`, implementing pagination/sorting/filtering in the handler, structuring the response DTO for a paginated list, and returning `BuildingBlocks.Models.AppResponse<T>` from the Carter endpoint.**
+
+**1. Application Layer (CQRS Query):**
+   Location: `src/Services/EStore.Application/Queries/{Feature}/{EndPointName}/` (Note: Ensure namespace matches the actual project structure, e.g., `EStore.Application.Queries...`)
+
+   Create the following C# files:
+   *   `{EndPointName}Request.cs`:
+        *   **If the query is for a list of items:**
+            *   This class **must inherit from `BuildingBlocks.Pagination.PaginationRequest`** (located at `src/BuildingBlocks/BuildingBlocks/Pagination/PaginationRequest.cs`).
+            *   The `PaginationRequest` class (e.g., `public class PaginationRequest(int PageIndex = 0, int PageSize = 10, string? SortBy = null, string? SortOrder = null, string? FilterQuery = null)`) provides base pagination, sorting, and filtering fields.
+            *   The `{EndPointName}Request` can add more specific filter properties if needed, passing the common ones to the base constructor.
+            *   Example: For `GetProductsList`, `GetProductsListRequest.cs`:
+                ```csharp
+                // public class GetProductsListRequest(
+                //     int PageIndex, 
+                //     int PageSize, 
+                //     string? SortBy, 
+                //     string? SortOrder, 
+                //     string? FilterQuery,
+                //     string? CategoryFilter = null // Additional specific filter
+                // ) : PaginationRequest(PageIndex, PageSize, SortBy, SortOrder, FilterQuery);
+                ```
+        *   **If the query is for a single item:**
+            *   A DTO representing parameters (e.g., an identifier). It does **not** inherit from `PaginationRequest`.
+            *   Example: For `GetProductDetails`, `GetProductDetailsRequest.cs` might contain `Guid ProductId;`.
+   *   `{EndPointName}Response.cs`:
+        *   **If the query is for a list of items:**
+            *   A DTO containing a paginated list (e.g., `public EStore.Application.Common.Models.PaginatedList<SomeItemDto> Items { get; set; }`). The `PaginatedList<T>` should include properties like `Items`, `PageIndex`, `PageSize`, `TotalCount`, `TotalPages`.
+            *   Example: `GetProductsListResponse.cs` might be `public class GetProductsListResponse { public PaginatedList<ProductSummaryDto> Products { get; set; } }`.
+        *   **If the query is for a single item:**
+            *   A DTO for the single data item. Example: `GetProductDetailsResponse.cs`.
+   *   `{EndPointName}Query.cs`:
+        *   Implements `MediatR.IRequest<{EndPointName}Response>`. Takes `{EndPointName}Request` in constructor.
+   *   `{EndPointName}Validator.cs`: (Recommended)
+        *   Implements `FluentValidation.AbstractValidator<{EndPointName}Request>` (preferred) or `AbstractValidator<{EndPointName}Query>`.
+        *   Validate pagination (`PageIndex >= 0`, `PageSize > 0`), sort, and filter parameters.
+   *   `{EndPointName}Handler.cs`:
+        *   Implements `MediatR.IRequestHandler<{EndPointName}Query, {EndPointName}Response>`.
+        *   For lists: apply pagination, sorting, filtering using parameters from the Query object (derived from Request) and construct the paginated response DTO.
+
+**2. API Layer (Carter Endpoint):**
+   Location: `src/Services/EStore.Api/Endpoints/{Feature}/Queries/`
+
+   Create a Carter module/endpoint file (e.g., `{EndPointName}Endpoints.cs`):
+   *   Inject `MediatR.ISender`.
+   *   In the route handler method:
+        1.  Bind HTTP request parameters to `{EndPointName}Request.cs` (e.g., using `[AsParameters]`).
+        2.  Create `{EndPointName}Query.cs` from the request object.
+        3.  Send query: `var mediatRResult = await sender.Send(newlyCreatedQuery);`
+        4.  **Wrap `mediatRResult` in `BuildingBlocks.Models.AppResponse<T>`** (from `src/BuildingBlocks/BuildingBlocks/Models/AppResponse.cs`).
+        5.  Return `AppResponse` object:
+            *   Success: `Results.Ok(AppResponse<{EndPointName}Response>.Success(mediatRResult, "Data retrieved successfully."));`
+            *   Single item not found: `Results.NotFound(AppResponse<object>.Failure("The requested resource was not found.", new List<string> { "NOT_FOUND_ERROR_CODE" }));`
+            *   Ensure `.Produces<AppResponse<{EndPointName}Response>>(StatusCodes.Status200OK)`, `.Produces<AppResponse<object>>(StatusCodes.Status404NotFound)`, etc., reflect `AppResponse<T>`.
+
+**General Considerations:**
+*   **Namespaces:** Ensure correct namespaces (e.g., `EStore.Application.Queries.{Feature}.{EndPointName}`, `BuildingBlocks.Pagination`, `BuildingBlocks.Models`). Refer to existing structures like `GetAllStores` for specific `EStore.Application` namespaces.
+*   **Dependency Injection:** Register MediatR handlers and FluentValidation validators.
+*   **Async/Await:** Use `async` and `await` appropriately.
+*   The base folder structure and other conventions are detailed in [.cursor/rules/net-api-rule.mdc](mdc:.cursor/rules/net-api-rule.mdc).
+
+
+
+
+

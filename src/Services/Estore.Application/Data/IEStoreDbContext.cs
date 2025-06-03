@@ -18,6 +18,8 @@ public interface IEStoreDbContext
 
     public DbSet<Subscription> Subscriptions { get; }
 
+    public DbSet<Store> Stores { get; }
+
     public DatabaseFacade Database { get; }
     
     Task<int> CommitAsync(CancellationToken cancellationToken = default);

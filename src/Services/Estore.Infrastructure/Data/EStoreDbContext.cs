@@ -30,6 +30,8 @@ public class EStoreDbContext: IdentityDbContext<User>, IEStoreDbContext
     public DbSet<Payment> Payments { get; set; }
     
     public DbSet<Subscription> Subscriptions { get; set; }
+
+    public DbSet<Store> Stores { get; set; }
     
     public DatabaseFacade Database => base.Database;
 
