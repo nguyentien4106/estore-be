@@ -1,35 +1,31 @@
+using EStore.Application.Queries.Stores.GetAllStores;
+using EStore.Application.Services.Telegram;
+using Mapster;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace EStore.Services.Estore.Application.Commands.Stores.AddStore;
+namespace EStore.Application.Commands.Stores.AddStore;
 
-public class AddStoreCommandHandler : IRequestHandler<AddStoreCommand, AddStoreResponse>
+public class AddStoreHandler(ITelegramService telegramService, IEStoreDbContext dbContext) 
+: IRequestHandler<AddStoreCommand, AppResponse<StoreDto>>
 {
-    // Assuming you have a repository or service to save store data
-    // private readonly IStoreRepository _storeRepository;
-
-    // public AddStoreCommandHandler(IStoreRepository storeRepository)
-    // {
-    //     _storeRepository = storeRepository;
-    // }
-
-    public async Task<AddStoreResponse> Handle(AddStoreCommand request, CancellationToken cancellationToken)
+    public async Task<AppResponse<StoreDto>> Handle(AddStoreCommand command, CancellationToken cancellationToken)
     {
-        // Implement logic to add the new store
-        // For example, create a new Store entity and save it
-        // var newStore = new Store { ChannelName = request.ChannelName, /* other properties */ };
-        // var createdStore = await _storeRepository.AddStoreAsync(newStore);
+        var result = await telegramService.CreateNewChannelAsync(command.ChannelName, command.Description, cancellationToken);
+        if(!result.Succeed){
+            return AppResponse<StoreDto>.Error(result.Message);
+        }
 
-        // For now, returning a dummy response
-        // Replace with actual data saving and response generation
-        await Task.Delay(100); // Simulate async work
-
-        return new AddStoreResponse
+        var store = new Store
         {
-            StoreId = new System.Random().Next(1, 1000), // Dummy Store ID
-            Status = "Store created successfully.",
-            ChannelName = request.ChannelName
+            Description = command.Description,
+            ChannelName = command.ChannelName,
+            ChannelId = result.Data
         };
+
+        dbContext.Stores.Add(store);
+        
+        await dbContext.CommitAsync(cancellationToken); 
+
+        return AppResponse<StoreDto>.Success(store.Adapt<StoreDto>(), "Store created successfully");
     }
 } 

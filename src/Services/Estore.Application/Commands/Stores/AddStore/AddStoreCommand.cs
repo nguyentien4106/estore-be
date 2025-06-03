@@ -1,13 +1,9 @@
-using MediatR;
+using EStore.Application.Queries.Stores.GetAllStores;
 
-namespace EStore.Services.Estore.Application.Commands.Stores.AddStore;
+namespace EStore.Application.Commands.Stores.AddStore;
 
-public class AddStoreCommand : IRequest<AddStoreResponse>
+public class AddStoreCommand : ICommand<AppResponse<StoreDto>>
 {
-    public string ChannelName { get; }
-
-    public AddStoreCommand(string channelName)
-    {
-        ChannelName = channelName;
-    }
+    public string? Description { get; set; }
+    public string ChannelName { get; set; }
 } 

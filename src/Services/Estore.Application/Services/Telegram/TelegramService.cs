@@ -59,30 +59,18 @@ public class TelegramService : ITelegramService
         }
     }
 
-    public async Task<AppResponse<string>> CreateNewChannelAsync(string channelName)
+    public async Task<AppResponse<long>> CreateNewChannelAsync(string channelName, string? description = null, CancellationToken cancellationToken = default)
     {
         try{
-            var result = await _client.Channels_CreateChannel(channelName, "StoreChannel", null, null, 0, false, false, false, false);
+            var result = await _client.Channels_CreateChannel(channelName, description ?? "StoreChannel", null, null, 0, false, false, false, false);
             var chat = result.Chats.First();
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
-            dbContext.Stores.Add(new Store
-            {
-                ChannelId = chat.Value.ID,
-                ChannelName = channelName,
-                MessageCount = 0,
-                Description = "StoreChannel"
-            });
 
-            await dbContext.CommitAsync();
-
-            _logger.LogInformation("Channel created: {Channel}", JsonSerializer.Serialize(result));
-            return AppResponse<string>.Success(channelName);
+            return AppResponse<long>.Success(chat.Value.ID);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create channel {Channel}", channelName);
-            return AppResponse<string>.Error(ex.Message, channelName);
+            return AppResponse<long>.Error(ex.Message);
         }
 
     }
