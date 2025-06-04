@@ -11,5 +11,9 @@ public class Store : Entity<Guid>
     public string ChannelName { get; set; }
 
     public long MessageCount { get; set; }
+
+    public string? Link { get; set; }
+
+    public long AccessHash { get; set; }
 }
 

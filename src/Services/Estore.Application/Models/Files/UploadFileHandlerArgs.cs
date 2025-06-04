@@ -17,4 +17,7 @@ public class UploadFileHandlerArgs
     public long ContentLength { get; set; } 
 
     public string? FilePath { get; set; } = string.Empty;
+
+    public long ChannelId { get; set; }
+
 }

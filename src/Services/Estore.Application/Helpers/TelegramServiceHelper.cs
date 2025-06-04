@@ -58,7 +58,76 @@ public static class TelegramServiceHelper
         };
     }
     
-    public static string GetCaption(string fileName){
-        return $"File: {fileName}";
+    public static AppResponse<TeleFileEntity> CreateTeleFileLocationFromMedia(MessageMedia media, UploadFileHandlerArgs args, string userId, int messageId)
+    {
+        var teleFile = new TeleFileEntity
+        {
+            FileName = args.FileName,
+            FileSize = args.ContentLength,
+            FileType = FileHelper.DetermineFileType(args.FileName),
+            Extension = Path.GetExtension(args.FileName).TrimStart('.'),
+            UserId = userId,
+            MessageId = messageId,
+            ContentType = args.ContentType
+        };
+
+        return media switch
+        {
+            MessageMediaPhoto { photo: Photo photo } => HandlePhotoMedia(teleFile, photo),
+            MessageMediaDocument { document: Document document } => HandleDocumentMedia(teleFile, document),
+            _ => AppResponse<TeleFileEntity>.Error("Unsupported media type")
+        };
+    }
+
+    public static AppResponse<TeleFileEntity> HandlePhotoMedia(TeleFileEntity teleFile, Photo photo)
+    {
+        var location = photo.ToFileLocation();
+        var size = photo.sizes.LastOrDefault();
+
+        teleFile.FileId = location.id;
+        teleFile.AccessHash = location.access_hash;
+        teleFile.Flags = (uint)photo.flags;
+        teleFile.FileReference = location.file_reference;
+        teleFile.DcId = photo.dc_id;
+        teleFile.Thumbnail = size?.Type ?? "w";
+
+        return AppResponse<TeleFileEntity>.Success(teleFile);
+    }
+
+    public static AppResponse<TeleFileEntity> HandleDocumentMedia(TeleFileEntity teleFile, Document document)
+    {
+        var location = document.ToFileLocation();
+
+        teleFile.FileId = location.id;
+        teleFile.AccessHash = location.access_hash;
+        teleFile.Flags = (uint)document.flags;
+        teleFile.FileReference = location.file_reference;
+        teleFile.DcId = document.dc_id;
+        teleFile.Thumbnail = "v";
+
+        return AppResponse<TeleFileEntity>.Success(teleFile);
+    }
+
+    public static string GetVerificationCode()
+    {
+        Console.Write("Code: ");
+        return Console.ReadLine() ?? string.Empty;
+    }
+
+    public static Task HandleUpdates(UpdatesBase updates)
+    {
+        foreach (var update in updates.UpdateList)
+        {
+            Console.WriteLine(update.GetType().Name);
+            switch (update)
+            {
+                case UpdateChannel updateChannel:
+                    Console.WriteLine(updateChannel.channel_id);
+                    Console.WriteLine(updateChannel.GetMBox());
+                    break;
+            }
+        }
+        
+        return Task.CompletedTask;
     }
 }

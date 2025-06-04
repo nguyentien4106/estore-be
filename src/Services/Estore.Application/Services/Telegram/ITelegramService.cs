@@ -13,7 +13,10 @@ public interface ITelegramService
 
     Task<AppResponse<bool>> DeleteMessageAsync(int messageId);
 
-    Task<AppResponse<TeleFileEntity>> SendMessageAsync(UploadFileHandlerArgs args, string userId);
+    Task<AppResponse<bool>> DeleteMessageAsync(List<int> messageIds);
 
-    Task<AppResponse<long>> CreateNewChannelAsync(string channelName, string? description = null, CancellationToken cancellationToken = default);
+    Task<AppResponse<(long, long)>> CreateNewChannelAsync(string channelName, string? description = null, CancellationToken cancellationToken = default);
+
+    Task<AppResponse<bool>> DeleteChannelAsync(long channelId, long accessHash);
+
 }

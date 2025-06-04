@@ -19,7 +19,8 @@ public class AddStoreHandler(ITelegramService telegramService, IEStoreDbContext 
         {
             Description = command.Description,
             ChannelName = command.ChannelName,
-            ChannelId = result.Data
+            ChannelId = result.Data.Item1,
+            AccessHash = result.Data.Item2
         };
 
         dbContext.Stores.Add(store);

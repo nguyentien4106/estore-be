@@ -13,7 +13,7 @@ public class AddStoreEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/stores", async ([AsParameters]AddStoreRequest request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/stores", async (AddStoreRequest request, ISender sender) =>
         {
             var command = request.Adapt<AddStoreCommand>();
             

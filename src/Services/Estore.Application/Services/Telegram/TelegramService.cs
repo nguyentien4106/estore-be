@@ -13,9 +13,10 @@ namespace EStore.Application.Services.Telegram;
 
 public class TelegramService : ITelegramService
 {
+    private Dictionary<long, ChatBase> _chats = [];
     private Client? _client;
     private ChatBase? _peer;
-    private ChatBase? _tempFilesPeer;
+
     private readonly TelegramConfiguration _telegramConfiguration;
     private readonly ILogger<TelegramService> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -48,8 +49,8 @@ public class TelegramService : ITelegramService
             _logger.LogInformation("Logged in as {User}", user);
             
             var chats = await _client.Messages_GetAllChats();
+            _chats = chats.chats;
             _peer = chats.chats[_telegramConfiguration.ChannelId];
-            _tempFilesPeer = chats.chats[2679347423];
             return true;
         }
         catch (Exception ex)
@@ -59,20 +60,43 @@ public class TelegramService : ITelegramService
         }
     }
 
-    public async Task<AppResponse<long>> CreateNewChannelAsync(string channelName, string? description = null, CancellationToken cancellationToken = default)
+    public async Task<AppResponse<(long, long)>> CreateNewChannelAsync(string channelName, string? description = null, CancellationToken cancellationToken = default)
     {
         try{
             var result = await _client.Channels_CreateChannel(channelName, description ?? "StoreChannel", null, null, 0, false, false, false, false);
-            var chat = result.Chats.First();
+            var channel = result.Chats.Values.First() as Channel;
+            if(channel == null)
+            {
+                return AppResponse<(long, long)>.Error("Failed to create channel");
+            }
 
-            return AppResponse<long>.Success(chat.Value.ID);
+            _chats.Add(channel.ID, channel);
+            
+            return AppResponse<(long, long)>.Success((channel.ID, channel.access_hash));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create channel {Channel}", channelName);
-            return AppResponse<long>.Error(ex.Message);
+            return AppResponse<(long, long)>.Error(ex.Message);
         }
 
+    }
+
+    public async Task<AppResponse<bool>> DeleteChannelAsync(long channelId, long accessHash)
+    {
+        try
+        {
+            var inputChannel = new InputChannel(channelId, accessHash);
+            await _client.Channels_DeleteChannel(inputChannel);
+            _chats.Remove(channelId);
+
+            return AppResponse<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete channel {ChannelId}", channelId);
+            return AppResponse<bool>.Error(ex.Message);
+        }
     }
 
     public async Task<AppResponse<bool>> DeleteMessageAsync(int messageId)
@@ -85,6 +109,20 @@ public class TelegramService : ITelegramService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete message {MessageId}", messageId);
+            return AppResponse<bool>.Error(ex.Message);
+        }
+    }
+
+    public async Task<AppResponse<bool>> DeleteMessageAsync(List<int> messageIds)
+    {
+        try
+        {
+            await _client.DeleteMessages(_peer, [.. messageIds]);
+            return AppResponse<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete messages {MessageIds}", messageIds);
             return AppResponse<bool>.Error(ex.Message);
         }
     }
@@ -139,7 +177,7 @@ public class TelegramService : ITelegramService
             var message = await _client.SendMessageAsync(_peer, userId, uploadedFile);
             
             return message.media != null 
-                ? CreateTeleFileLocationFromMedia(message.media, args, userId, message.id)
+                ? TelegramServiceHelper.CreateTeleFileLocationFromMedia(message.media, args, userId, message.id)
                 : AppResponse<TeleFileEntity>.Error("Failed to upload file");
         }
         catch (Exception ex)
@@ -149,78 +187,7 @@ public class TelegramService : ITelegramService
         }
     }
 
-    public async Task<AppResponse<TeleFileEntity>> SendMessageAsync(UploadFileHandlerArgs args, string userId)
-    {
-        try
-        {
-            var uploadedFile = await _client.UploadFileAsync(args.FileStream, args.FileName);
-            var inputMedia = new InputMediaUploadedDocument
-            {
-                file = uploadedFile,
-            };
-            var message = await _client.SendMessageAsync(_tempFilesPeer, args.FileName, inputMedia);
-
-            return message.media != null 
-                ? CreateTeleFileLocationFromMedia(message.media, args, userId, message.id)
-                : AppResponse<TeleFileEntity>.Error("Failed to upload file");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send message {FileName}", args.FileName);
-            return AppResponse<TeleFileEntity>.Error(ex.Message);
-    }
-    }
     
-    private static AppResponse<TeleFileEntity> CreateTeleFileLocationFromMedia(MessageMedia media, UploadFileHandlerArgs args, string userId, int messageId)
-    {
-        var teleFile = new TeleFileEntity
-        {
-            FileName = args.FileName,
-            FileSize = args.ContentLength,
-            FileType = FileHelper.DetermineFileType(args.FileName),
-            Extension = Path.GetExtension(args.FileName).TrimStart('.'),
-            UserId = userId,
-            MessageId = messageId,
-            ContentType = args.ContentType
-        };
-
-        return media switch
-        {
-            MessageMediaPhoto { photo: Photo photo } => HandlePhotoMedia(teleFile, photo),
-            MessageMediaDocument { document: Document document } => HandleDocumentMedia(teleFile, document),
-            _ => AppResponse<TeleFileEntity>.Error("Unsupported media type")
-        };
-    }
-
-    private static AppResponse<TeleFileEntity> HandlePhotoMedia(TeleFileEntity teleFile, Photo photo)
-    {
-        var location = photo.ToFileLocation();
-        var size = photo.sizes.LastOrDefault();
-
-        teleFile.FileId = location.id;
-        teleFile.AccessHash = location.access_hash;
-        teleFile.Flags = (uint)photo.flags;
-        teleFile.FileReference = location.file_reference;
-        teleFile.DcId = photo.dc_id;
-        teleFile.Thumbnail = size?.Type ?? "w";
-
-        return AppResponse<TeleFileEntity>.Success(teleFile);
-    }
-
-    private static AppResponse<TeleFileEntity> HandleDocumentMedia(TeleFileEntity teleFile, Document document)
-    {
-        var location = document.ToFileLocation();
-
-        teleFile.FileId = location.id;
-        teleFile.AccessHash = location.access_hash;
-        teleFile.Flags = (uint)document.flags;
-        teleFile.FileReference = location.file_reference;
-        teleFile.DcId = document.dc_id;
-        teleFile.Thumbnail = "v";
-
-        return AppResponse<TeleFileEntity>.Success(teleFile);
-    }
-
     private string Config(string what) => what switch
     {
         "api_id" => _telegramConfiguration.ApiId.ToString(),
@@ -274,7 +241,7 @@ public class TelegramService : ITelegramService
 
     private static Task HandleUpdates(UpdatesBase updates)
     {
-        foreach (var update in updates.UpdateList)
+        /*foreach (var update in updates.UpdateList)
         {
             Console.WriteLine(update.GetType().Name);
             switch (update)
@@ -284,9 +251,8 @@ public class TelegramService : ITelegramService
                     Console.WriteLine(updateChannel.GetMBox());
                     break;
             }
-        }
+        }*/
         
         return Task.CompletedTask;
     }
-
 }
