@@ -11,11 +11,17 @@ public static class TelegramServiceHelper
     {
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"File not found: {filePath}");
+        var mediaInfo = new MediaInfoWrapper(filePath);
+        var fileName = Path.GetFileName(filePath);
+        if (!mediaInfo.HasVideo)
+        {
+            return new DocumentAttribute[]
+            {
+                new DocumentAttributeFilename { file_name = fileName }
+            };
+        }
 
-        var mediaInfo = new MediaInfo.DotNetWrapper.MediaInfo();
-        mediaInfo.Open(filePath);
         var videoInfo =  new VideoInfo(mediaInfo);
-        string fileName = Path.GetFileName(filePath);
 
         // If no video stream found (width/height/duration == 0), treat it as image or document
         if (videoInfo.Width == 0 || videoInfo.Heigth == 0 || string.IsNullOrWhiteSpace(videoInfo.Codec))
