@@ -2,13 +2,14 @@ using BuildingBlocks.Auth.Constants;
 using BuildingBlocks.Auth.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BuildingBlocks.Auth.AuthConfiguration;
 
 public static class EStoreExtensions
 {
-    public static IServiceCollection AddJwtServices(this IServiceCollection services)
+    public static IServiceCollection AddJwtServices(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtSettings = JwtSettingsReader.GetJwtSettings();
         
@@ -30,9 +31,10 @@ public static class EStoreExtensions
         {
             opts.AddPolicy("web", policy =>
             {
-                policy.AllowAnyOrigin()
+                policy.WithOrigins(configuration["JwtSettings:Audience"])
                 .AllowAnyHeader()
                 .AllowAnyMethod()
+                .AllowCredentials()
                 .WithExposedHeaders("Content-Disposition");
             });
         });

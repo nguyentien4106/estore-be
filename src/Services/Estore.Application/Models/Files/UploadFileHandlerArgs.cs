@@ -20,4 +20,8 @@ public class UploadFileHandlerArgs
 
     public long ChannelId { get; set; }
 
+    public required Guid FileId { get; set; }
+
+    public WTelegram.Client.ProgressCallback? ProgressCallback { get; set; }
+
 }

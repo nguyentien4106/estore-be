@@ -1,6 +1,7 @@
 using EStore.Api;
 using EStore.Api.Extensions;
 using EStore.Application;
+using EStore.Application.Hubs;
 using EStore.Infrastructure;
 using EStore.Infrastructure.Data.Extensions;
 
@@ -15,7 +16,8 @@ builder.Services
     .AddEStoreServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
     .AddApplicationServices(builder.Configuration)
-    .AddCustomWebhookServices();
+    .AddCustomWebhookServices()
+    .AddSignalR();
 
 var app = builder.Build();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -26,6 +28,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseEStoreApiServices();
+
+app.MapHub<TelegramNotificationHub>("/notificationHub");
 
 app.MapGet("/", () => "EStore Microservice.");
 

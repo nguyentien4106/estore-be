@@ -1,14 +1,14 @@
 ﻿using EStore.Application.Commands.Files.UploadFile;
 using Microsoft.Extensions.Logging;
 using EStore.Application.Helpers;
-using EStore.Application.Services.Files;
 using WTelegram;
 using TL;
 using EStore.Application.Models.Files;
-using TL.Methods;
-using System.Text.Json;
-using EStore.Application.Data;
 using Microsoft.Extensions.DependencyInjection;
+using EStore.Application.Services.Telegram.Strategies;
+using Microsoft.AspNetCore.SignalR;
+using EStore.Application.Hubs;
+using System;
 namespace EStore.Application.Services.Telegram;
 
 public class TelegramService : ITelegramService
@@ -20,15 +20,18 @@ public class TelegramService : ITelegramService
     private readonly TelegramConfiguration _telegramConfiguration;
     private readonly ILogger<TelegramService> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IHubContext<TelegramNotificationHub, ITelegramNotificationClient> _hubContext;
 
     public TelegramService(
         TelegramConfiguration telegramConfiguration, 
         IServiceScopeFactory serviceScopeFactory,
-        ILogger<TelegramService> logger)
+        ILogger<TelegramService> logger,
+        IHubContext<TelegramNotificationHub, ITelegramNotificationClient> hubContext)
     {
         _telegramConfiguration = telegramConfiguration;
         _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
+        _hubContext = hubContext;
 
         if (!InitializeClient().GetAwaiter().GetResult())
         {
@@ -134,8 +137,13 @@ public class TelegramService : ITelegramService
             var fileStream = new MemoryStream();
             var downloadHandler = TelegramFileHandlerFactory.GetDownloadFileHandler(fileLocation.FileType);
             var location = downloadHandler.GetLocation(fileLocation);
+            await _hubContext.Clients.All.ReceiveDownloadStarted(fileLocation.Id.ToString(), fileLocation.FileName);
             
-            await _client.DownloadFileAsync(location, fileStream);
+            await _client.DownloadFileAsync(location, fileStream, fileLocation.DcId ?? 0, fileLocation.FileSize, progress: (transmitted, total) => 
+            {
+                var percentage = (double)transmitted / total * 100;
+                _hubContext.Clients.All.ReceiveDownloadProgress(fileLocation.Id.ToString(), fileLocation.FileName, percentage);
+            });
             fileStream.Position = 0;
             
             return AppResponse<Stream>.Success(fileStream);
@@ -147,33 +155,38 @@ public class TelegramService : ITelegramService
         }
     }
 
-    public async Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId)
+    public async Task<AppResponse<TeleFileEntity>> UploadFileCommandAsync(UploadFileTelegramCommand command, string userId)
     {
         var file = command.File;
         using var fileStream = FileHelper.GetMemoryStream(file);
         var args = new UploadFileHandlerArgs
         {
-            Client = _client,
             FileStream = fileStream,
             Caption = file.FileName,
             FileName = file.FileName,
             ContentType = file.ContentType,
-            ContentLength = file.Length
+            ContentLength = file.Length,
+            FileId = Guid.NewGuid()
         };
 
-        return await UploadFileToStrorageAsync(args, userId);
+        return await UploadFileArgsAsync(args, userId);
         
     }
 
-    public async Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileHandlerArgs args, string userId)
+    public async Task<AppResponse<TeleFileEntity>> UploadFileArgsAsync(UploadFileHandlerArgs args, string userId)
     {
         try
         {
             var fileType = FileHelper.DetermineFileType(args.FileName);
             var uploadHandler = TelegramFileHandlerFactory.GetUploadFileHandler(fileType);
             args.Client = _client;
-            var uploadedFile = await uploadHandler.UploadFileAsync(args);
+            args.ProgressCallback = (transmitted, total) => 
+            {
+                var percentage = (double)transmitted / total * 100;
+                _hubContext.Clients.All.ReceiveUploadProgress(args.FileId.ToString(), percentage);
+            };
 
+            var uploadedFile = await uploadHandler.UploadFileAsync(args);
             var message = await _client.SendMessageAsync(_peer, userId, uploadedFile);
             
             return message.media != null 
@@ -186,7 +199,6 @@ public class TelegramService : ITelegramService
             return AppResponse<TeleFileEntity>.Error(ex.Message);
         }
     }
-
     
     private string Config(string what) => what switch
     {

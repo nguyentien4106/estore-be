@@ -12,6 +12,9 @@ using Microsoft.Extensions.Logging;
 using EStore.Application.Helpers;
 using System.Linq;
 using EStore.Application.Constants;
+using Microsoft.AspNetCore.SignalR;
+using EStore.Application.Hubs;
+using EStore.Application.Extensions;
 
 namespace EStore.Application.Services.RabbitMQ
 {
@@ -35,14 +38,15 @@ namespace EStore.Application.Services.RabbitMQ
         private readonly ITelegramService _telegramService;
 
         private readonly IServiceScopeFactory _serviceScopeFactory;
-
         private readonly ILogger<RabbitMQService> _logger;
         private readonly ConcurrentDictionary<string, ConcurrentBag<(ChunkMessage Message, ulong DeliveryTag)>> _messageStore = new();
+        private readonly IHubContext<TelegramNotificationHub, ITelegramNotificationClient> _hubContext;
 
         public RabbitMQService(
             RabbitMQConfiguration rabbitMQOptions,
             ITelegramService telegramService,
             IServiceScopeFactory factory,
+            IHubContext<TelegramNotificationHub, ITelegramNotificationClient> hubContext,
             ILogger<RabbitMQService> logger)
         {
             _telegramService = telegramService;
@@ -63,6 +67,7 @@ namespace EStore.Application.Services.RabbitMQ
             _producerChannel.QueueBindAsync(QueueConstants.MergeFileQueue, QueueConstants.ExchangeName, "chunk").GetAwaiter();
 
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         public async Task<bool> ProducerAsync(string queueName, string message)
@@ -89,7 +94,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error sending message via ProducerAsync: {ex.Message}");
+                _logger.LogError(ex, "Error sending message via ProducerAsync: {Message}", ex.Message);
                 return false;
             }
         }
@@ -109,7 +114,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error starting consumer [{consumerTag}]: {ex.Message}");
+                _logger.LogError(ex, "Error starting consumer [{ConsumerTag}]: {Message}", consumerTag, ex.Message);
                 throw;
             }
         }
@@ -127,30 +132,30 @@ namespace EStore.Application.Services.RabbitMQ
 
                 if (messagesForFile.Count == message.TotalChunks)
                 {
-                    var id = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
+                    var fileId = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
 
                     var mergedFilePath = await MergeChunksAsync(message);
                     if(string.IsNullOrEmpty(mergedFilePath))
                     {
-                        _logger.LogError($"Error merging chunks for file {message.FileId}, {mergedFilePath}");
+                        _logger.LogError("Error merging chunks for file {FileId}, {FilePath}", message.FileId, mergedFilePath);
                         return;
                     }
                     var pushFileMessage = new PushFileMessage
                     {
                         FilePath = mergedFilePath,
-                        FileId = id,
+                        FileId = fileId,
                         UserId = message.UserId,
                         FileName = message.FileName,
                         ContentType = message.ContentType
                     };
-                    _logger.LogInformation($"Pushing {QueueConstants.PushFileQueue} with message {JsonSerializer.Serialize(pushFileMessage)}");
+
                     await ProducerAsync(QueueConstants.PushFileQueue, JsonSerializer.Serialize(pushFileMessage));
                     await CleanUpMergeFileAsync(_mergeFileConsumerChannel, message, messagesForFile);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing message: {ex.Message}");
+                _logger.LogError("Error processing message: {Message}", ex.Message);
                 await _mergeFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
             }
             finally
@@ -166,7 +171,6 @@ namespace EStore.Application.Services.RabbitMQ
                 var filePath = FileHelper.GetTempFilePathPart(message.UserId, message.FileId);
                 var chunks = Directory.GetFiles(filePath);
 
-                // order by chunk index
                 chunks = [.. chunks.OrderBy(chunk => int.Parse(chunk.Split(Path.DirectorySeparatorChar).Last()))];
                 var mergedFilePath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId, message.FileName);
 
@@ -187,7 +191,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in MergeChunksAsync: {ex.Message}");
+                _logger.LogError(ex, "Error in MergeChunksAsync: {Message}", ex.Message);
                 return string.Empty;
             }
         }
@@ -204,8 +208,6 @@ namespace EStore.Application.Services.RabbitMQ
             _messageStore.TryRemove(message.FileId, out _);
         }
 
-
-
         public async Task PushFileConsumerAsync(string consumerTag)
         {
             try
@@ -221,7 +223,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error starting consumer [{consumerTag}]: {ex.Message}");
+                _logger.LogError("Error starting consumer [{ConsumerTag}]: {Message}", consumerTag, ex.Message);
                 throw;
             }
         }
@@ -232,10 +234,9 @@ namespace EStore.Application.Services.RabbitMQ
             {
                 var body = ea.Body.ToArray();
                 var message = JsonSerializer.Deserialize<PushFileMessage>(Encoding.UTF8.GetString(body));
-                Console.WriteLine($"message received: {JsonSerializer.Serialize(message)}");
                 if (message is null)
                 {
-                    _logger.LogError($"Invalid message: {Encoding.UTF8.GetString(body)}");
+                    _logger.LogError("Invalid message: {Message}", Encoding.UTF8.GetString(body));
                     return;
                 }
                 await _pushFileConsumerChannel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
@@ -243,19 +244,19 @@ namespace EStore.Application.Services.RabbitMQ
                 var teleFileEntity = await UploadToTelegramAsync(message.FilePath, message);
                 if (teleFileEntity.Succeed)
                 {
-                    await UpdateDatabaseAsync(message.FileId, teleFileEntity.Data);
-                    Console.WriteLine($"message.FilePath: {message.FilePath}");
+                    var file = await UpdateDatabaseAsync(message.FileId, teleFileEntity.Data);
                     CleanUpPushFile(message.FilePath);
+                    await _hubContext.Clients.All.ReceiveUploadCompleted(message.FileId.ToString(), file?.ToFileEntityResponse() ?? null);
                 }
                 else
                 {
-                    _logger.LogError($"Error uploading file {message.FileId} to Telegram: {teleFileEntity.Message}");
+                    _logger.LogError("Error uploading file {FileId} to Telegram: {Message}", message.FileId, teleFileEntity.Message);
                     await _pushFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing message in push file consumer: {ex.Message}");
+                _logger.LogError("Error processing message in push file consumer: {Message}", ex.Message);
                 await _pushFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
             }
         }
@@ -265,6 +266,7 @@ namespace EStore.Application.Services.RabbitMQ
             try
             {
                 using var fileStream = File.OpenRead(mergedFilePath);
+
                 var args = new UploadFileHandlerArgs
                 {
                     FileStream = fileStream,
@@ -272,41 +274,38 @@ namespace EStore.Application.Services.RabbitMQ
                     ContentType = message.ContentType,
                     ContentLength = fileStream.Length,
                     FilePath = mergedFilePath,
+                    FileId = message.FileId
                 };
-                return await _telegramService.UploadFileToStrorageAsync(args, message.UserId);
+                return await _telegramService.UploadFileArgsAsync(args, message.UserId);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in UploadToTelegramAsync: {ex.Message}");
+                _logger.LogError(ex, "Error in UploadToTelegramAsync: {Message}", ex.Message);
                 throw;
             }
         }
 
         private static void CleanUpPushFile(string filePath)
         {
-            Console.WriteLine($"cleaning up file: {filePath}");
-            Directory.Delete(filePath, true);
-            Console.WriteLine($"file cleaned up: successfully");
+            File.Delete(filePath);
         }
 
-        private async Task UpdateDatabaseAsync(Guid id, TeleFileEntity? teleFileEntity)
+        private async Task<TeleFileEntity?> UpdateDatabaseAsync(Guid id, TeleFileEntity? teleFileEntity)
         {
             if (teleFileEntity is null)
             {
-                _logger.LogError($"File {id} not found");
-                return;
+                _logger.LogError("File {Id} not found", id);
+                return null;
             }
-
             try
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
-                _logger.LogInformation($"Updating file {id} to {FileStatus.Uploaded}");
                 var file = await context.TeleFileEntities.FindAsync(id);
                 if (file is null)
                 {
-                    _logger.LogError($"File {id} not found");
-                    return;
+                    _logger.LogError("File {Id} not found", id);
+                    return null;
                 }
                 file.FileStatus = FileStatus.Uploaded;
                 file.FileSize = teleFileEntity.FileSize;
@@ -320,10 +319,11 @@ namespace EStore.Application.Services.RabbitMQ
                 file.DcId = teleFileEntity.DcId;
                 file.Thumbnail = teleFileEntity.Thumbnail;
                 await context.CommitAsync();
+                return file;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error updating database: {ex.Message}");
+                _logger.LogError("Error updating database: {Message}", ex.Message);
                 throw;
             }
         }
@@ -337,7 +337,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error during RabbitMQService Dispose: {ex.Message}");
+                _logger.LogError("Error during RabbitMQService Dispose: {Message}", ex.Message);
             }
             GC.SuppressFinalize(this);
         }

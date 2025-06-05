@@ -1,7 +1,7 @@
 using EStore.Application.Services.Telegram.Strategies.DownloadFiles;
 using EStore.Application.Services.Telegram.Strategies.UploadFiles;
 
-namespace EStore.Application.Services.Files;
+namespace EStore.Application.Services.Telegram.Strategies;
 
 public class TelegramFileHandlerFactory
 {
@@ -24,14 +24,4 @@ public class TelegramFileHandlerFactory
             _ => new DownloadDocumentFileHandler(),
         };
     }
-
-    // public static IDeleteFileHandler GetDeleteFileHandler(StorageSource storageSource, IEStoreDbContext context, ITelegramService telegramService)
-    // {
-    //     return storageSource switch
-    //     {
-    //         StorageSource.R2 => new DeleteFileR2Handler(),
-    //         StorageSource.Telegram => new DeleteFileTelegramHandler(context, telegramService),
-    //         _ => throw new NotSupportedException($"Storage source {storageSource} is not supported")
-    //     };
-    // }
 }

@@ -29,7 +29,6 @@ namespace EStore.Application.Services.BackgroundServices
             }
             catch (OperationCanceledException)
             {
-                // When the stopping token is signaled, an OperationCanceledException is thrown by Task.Delay or other cancellable operations.
                 _logger.LogInformation("MergeFileWorkerService execution was canceled.");
             }
             catch (Exception ex)

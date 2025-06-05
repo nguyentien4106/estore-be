@@ -5,9 +5,9 @@ namespace EStore.Application.Services.Telegram;
 
 public interface ITelegramService
 {
-    Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileTelegramCommand command, string userId);
+    Task<AppResponse<TeleFileEntity>> UploadFileCommandAsync(UploadFileTelegramCommand command, string userId);
 
-    Task<AppResponse<TeleFileEntity>> UploadFileToStrorageAsync(UploadFileHandlerArgs args, string userId);
+    Task<AppResponse<TeleFileEntity>> UploadFileArgsAsync(UploadFileHandlerArgs args, string userId);
 
     Task<AppResponse<Stream>> DownloadFileAsync(TeleFileEntity fileLocation);
 

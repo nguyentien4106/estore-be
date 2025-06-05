@@ -9,7 +9,9 @@ public class UploadImageFileHandler() : IUploadFileHandler
     {
         try
         {
-            var photoUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName);
+            var photoUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName, (long transmitted, long total) => {
+                args.ProgressCallback?.Invoke(transmitted, total);
+            });
 
             var image = new InputMediaUploadedPhoto {
                 file = photoUploaded

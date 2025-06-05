@@ -8,7 +8,9 @@ public class UploadDocumentFileHandler : IUploadFileHandler
     public async Task<InputMedia> UploadFileAsync(UploadFileHandlerArgs args)
     {
         try{
-            var documentUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName);
+            var documentUploaded = await args.Client.UploadFileAsync(args.FileStream, args.FileName, (long transmitted, long total) => {
+                args.ProgressCallback?.Invoke(transmitted, total);
+            });
 
             var document = new InputMediaUploadedDocument {
                 file = documentUploaded, 

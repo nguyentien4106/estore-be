@@ -41,26 +41,23 @@ public class UploadFileMultipartHandler(
             id = telegramFile.Id;
         }
 
-        await SendToQueueAsync(request, filePath, id);
+        await SendToMergeFileQueueAsync(request, filePath, id);
 
         return AppResponse<FileEntityResult>.Success(telegramFile?.ToFileEntityResponse());
     }
 
-    private async Task<string> HandleChunkFile(UploadFileMultipartCommand command)
+    private static async Task<string> HandleChunkFile(UploadFileMultipartCommand command)
     {
-        var file = command.File;
-        var chunkIndex = command.ChunkIndex;
-        using var stream = file.OpenReadStream();
-
-        var filePath = FileHelper.GetTempFilePathPart(command.UserId, command.FileId, chunkIndex);
-
+        using var stream = command.File.OpenReadStream();
+        var filePath = FileHelper.GetTempFilePathPart(command.UserId, command.FileId, command.ChunkIndex);
         var directoryPath = Path.GetDirectoryName(filePath);
+
         if (directoryPath != null && !Directory.Exists(directoryPath))
         {
             Directory.CreateDirectory(directoryPath);
         }
 
-        using (FileStream outputStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+        using (FileStream outputStream = new(filePath, FileMode.Create, FileAccess.Write))
         {
             await stream.CopyToAsync(outputStream);
         }
@@ -68,7 +65,7 @@ public class UploadFileMultipartHandler(
         return filePath;
     }
 
-    private async Task<ChunkMessage> SendToQueueAsync(UploadFileMultipartCommand request, string filePath, Guid id)
+    private async Task SendToMergeFileQueueAsync(UploadFileMultipartCommand request, string filePath, Guid id)
     {
         var chunkMessage = new ChunkMessage
         {
@@ -83,7 +80,5 @@ public class UploadFileMultipartHandler(
 
         var message = JsonSerializer.Serialize(chunkMessage);
         await queueService.ProducerAsync(QueueConstants.MergeFileQueue, message);
-
-        return chunkMessage;
     }
 }

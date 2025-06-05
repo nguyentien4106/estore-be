@@ -18,7 +18,7 @@ public class UploadFileTelegramHandler(
             return AppResponse<FileEntityResult>.NotFound("User", command.UserName);
         }
 
-        var result = await telegramService.UploadFileToStrorageAsync(command, user.Id);
+        var result = await telegramService.UploadFileCommandAsync(command, user.Id);
 
         if(result.Succeed){
             await context.TeleFileEntities.AddAsync(result.Data, cancellationToken);

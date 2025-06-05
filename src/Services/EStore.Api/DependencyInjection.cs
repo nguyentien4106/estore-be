@@ -24,7 +24,7 @@ public static class DependencyInjection
         services.AddExceptionHandler<CustomExceptionHandler>();
         services.AddHealthChecks();
         services.AddIdentityServices(configuration);
-        services.AddJwtServices();
+        services.AddJwtServices(configuration);
         services.AddValidators();
         services.AddAuthorizationHandlers();
         services.ConfigureFormOptions();
