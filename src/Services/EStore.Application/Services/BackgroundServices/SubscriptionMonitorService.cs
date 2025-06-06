@@ -15,7 +15,6 @@ public class SubscriptionMonitorService(IServiceProvider serviceProvider, ILogge
         {
             try
             {
-                // Calculate time until next run at 23:59
                 var now = DateTime.UtcNow;
                 var nextRun = now.Date.AddDays(now.TimeOfDay >= new TimeSpan(23, 59, 0) ? 1 : 0)
                     .Add(new TimeSpan(23, 59, 0));
@@ -24,11 +23,10 @@ public class SubscriptionMonitorService(IServiceProvider serviceProvider, ILogge
                 logger.LogInformation("Next subscription check scheduled at {Time}", nextRun);
                 await Task.Delay(delay, stoppingToken);
 
-                // Process expired subscriptions
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<IEStoreDbContext>();
 
-                now = DateTime.UtcNow; // Update current time after delay
+                now = DateTime.UtcNow;
 
                 var expiredSubscriptions = await dbContext.Subscriptions
                     .Where(s => s.IsActive && s.EndDate < now)
@@ -51,7 +49,7 @@ public class SubscriptionMonitorService(IServiceProvider serviceProvider, ILogge
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error occurred while checking subscriptions.");
-                await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken); // Wait a bit before retrying after error
+                await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
             }
         }
     }

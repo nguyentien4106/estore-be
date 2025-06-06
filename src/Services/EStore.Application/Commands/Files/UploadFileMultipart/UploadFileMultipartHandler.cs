@@ -20,7 +20,7 @@ public class UploadFileMultipartHandler(
             return AppResponse<FileEntityResult>.NotFound("User", request.UserName);
         }
 
-        var filePath = await HandleChunkFile(request);
+        var filePath = await StoreChunkFileInDisk(request);
         var id = Guid.Empty;
         TeleFileEntity telegramFile = null;
 
@@ -46,10 +46,10 @@ public class UploadFileMultipartHandler(
         return AppResponse<FileEntityResult>.Success(telegramFile?.ToFileEntityResponse());
     }
 
-    private static async Task<string> HandleChunkFile(UploadFileMultipartCommand command)
+    private static async Task<string> StoreChunkFileInDisk(UploadFileMultipartCommand command)
     {
         using var stream = command.File.OpenReadStream();
-        var filePath = FileHelper.GetTempFilePathPart(command.UserId, command.FileId, command.ChunkIndex);
+        var filePath = FileHelper.GetTempsFilePath(command.UserId, command.FileId, command.ChunkIndex);
         var directoryPath = Path.GetDirectoryName(filePath);
 
         if (directoryPath != null && !Directory.Exists(directoryPath))
@@ -78,7 +78,6 @@ public class UploadFileMultipartHandler(
             Id = id
         };
 
-        var message = JsonSerializer.Serialize(chunkMessage);
-        await queueService.ProducerAsync(QueueConstants.MergeFileQueue, message);
+        await queueService.ProducerAsync(QueueConstants.MergeFileQueue, chunkMessage);
     }
 }

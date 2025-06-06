@@ -18,15 +18,6 @@ using EStore.Application.Extensions;
 
 namespace EStore.Application.Services.RabbitMQ
 {
-    public class PushFileMessage
-    {
-        public string FilePath { get; set; }
-        public Guid FileId { get; set; }
-        public string UserId { get; set; }
-        public string FileName { get; set; }
-        public string ContentType { get; set; }
-        public long ContentLength { get; set; }
-    }
 
     public class RabbitMQService : IRabbitMQService, IDisposable
     {
@@ -78,13 +69,40 @@ namespace EStore.Application.Services.RabbitMQ
                 return false;
             }
 
-            var channel = _producerChannel;
             try
             {
                 var body = Encoding.UTF8.GetBytes(message);
                 var properties = new BasicProperties() { Persistent = true };
 
-                await channel.BasicPublishAsync(
+                await _producerChannel.BasicPublishAsync(
+                    exchange: QueueConstants.ExchangeName,
+                    routingKey: queueName,
+                    mandatory: true,
+                    basicProperties: properties,
+                    body: body);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending message via ProducerAsync: {Message}", ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> ProducerAsync(string queueName, object data)
+        {
+            if (_connection is null || !_connection.IsOpen || _producerChannel is null)
+            {
+                _logger.LogError("RabbitMQ channel is not available for producer.");
+                return false;
+            }
+
+            try
+            {
+                var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data));
+                var properties = new BasicProperties() { Persistent = true };
+
+                await _producerChannel.BasicPublishAsync(
                     exchange: QueueConstants.ExchangeName,
                     routingKey: queueName,
                     mandatory: true,
@@ -121,60 +139,60 @@ namespace EStore.Application.Services.RabbitMQ
 
         private async Task HandleReceivedMessageMergeFileAsync(object model, BasicDeliverEventArgs ea)
         {
-            Stream? mergedFileStream = null;
             try
             {
                 var body = ea.Body.ToArray();
                 var message = JsonSerializer.Deserialize<ChunkMessage>(Encoding.UTF8.GetString(body));
+                if (message is null)
+                {
+                    _logger.LogError("HandleReceivedMessageMergeFileAsync Invalid message: {Message}", Encoding.UTF8.GetString(body));
+                    return;
+                }
 
                 var messagesForFile = _messageStore.GetOrAdd(message.FileId, _ => []);
                 messagesForFile.Add((message, ea.DeliveryTag));
 
-                if (messagesForFile.Count == message.TotalChunks)
+                if (!IsAllChunksReceived(messagesForFile, message.TotalChunks))
                 {
-                    var fileId = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
-
-                    var mergedFilePath = await MergeChunksAsync(message);
-                    if(string.IsNullOrEmpty(mergedFilePath))
-                    {
-                        _logger.LogError("Error merging chunks for file {FileId}, {FilePath}", message.FileId, mergedFilePath);
-                        return;
-                    }
-                    var pushFileMessage = new PushFileMessage
-                    {
-                        FilePath = mergedFilePath,
-                        FileId = fileId,
-                        UserId = message.UserId,
-                        FileName = message.FileName,
-                        ContentType = message.ContentType
-                    };
-
-                    await ProducerAsync(QueueConstants.PushFileQueue, JsonSerializer.Serialize(pushFileMessage));
-                    await CleanUpMergeFileAsync(_mergeFileConsumerChannel, message, messagesForFile);
+                    return;
                 }
+
+                var fileId = message.Id != Guid.Empty ? message.Id : messagesForFile.FirstOrDefault(item => item.Message.Id != Guid.Empty).Message.Id;
+                var mergedFilePath = await MergeChunksAsync(message);
+                var pushFileMessage = new PushingFileMessage
+                {
+                    FilePath = mergedFilePath,
+                    FileId = fileId,
+                    UserId = message.UserId,
+                    FileName = message.FileName,
+                    ContentType = message.ContentType
+                };
+
+                await ProducerAsync(QueueConstants.PushFileQueue, pushFileMessage);
+                await CleanUpPartFiles(_mergeFileConsumerChannel, message, messagesForFile);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error processing message: {Message}", ex.Message);
+                _logger.LogError("HandleReceivedMessageMergeFileAsync error: {Message}", ex.Message);
                 await _mergeFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
             }
-            finally
-            {
-                mergedFileStream?.Close();
-            }
+        }
+
+        private static bool IsAllChunksReceived(ConcurrentBag<(ChunkMessage, ulong)> messagesForFile, int totalChunks)
+        {
+            return messagesForFile.Count == totalChunks;
         }
 
         private async Task<string> MergeChunksAsync(ChunkMessage message)
         {
             try
             {
-                var filePath = FileHelper.GetTempFilePathPart(message.UserId, message.FileId);
+                var filePath = FileHelper.GetTempsFilePath(message.UserId, message.FileId);
                 var chunks = Directory.GetFiles(filePath);
-
                 chunks = [.. chunks.OrderBy(chunk => int.Parse(chunk.Split(Path.DirectorySeparatorChar).Last()))];
                 var mergedFilePath = Path.Combine(AppContext.BaseDirectory, "results", message.UserId, message.FileId, message.FileName);
-
                 var mergedFilePathDirectory = Path.GetDirectoryName(mergedFilePath);
+                
                 if (mergedFilePathDirectory != null && !Directory.Exists(mergedFilePathDirectory))
                 {
                     Directory.CreateDirectory(mergedFilePathDirectory);
@@ -192,14 +210,13 @@ namespace EStore.Application.Services.RabbitMQ
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in MergeChunksAsync: {Message}", ex.Message);
-                return string.Empty;
+                throw;
             }
         }
 
-        private async Task CleanUpMergeFileAsync(IChannel channel, ChunkMessage message, ConcurrentBag<(ChunkMessage, ulong)> messagesForFile)
+        private async Task CleanUpPartFiles(IChannel channel, ChunkMessage message, ConcurrentBag<(ChunkMessage, ulong)> messagesForFile)
         {
-            var filePath = Path.Combine(AppContext.BaseDirectory, "temps", message.UserId, message.FileId);
-            Directory.Delete(filePath, true);
+            Directory.Delete(FileHelper.GetTempsFilePath(message.UserId, message.FileId), true);
 
             foreach (var (_, deliveryTag) in messagesForFile)
             {
@@ -223,7 +240,7 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error starting consumer [{ConsumerTag}]: {Message}", consumerTag, ex.Message);
+                _logger.LogError("PushFileConsumerAsync consumer [{ConsumerTag}]: {Message}", consumerTag, ex.Message);
                 throw;
             }
         }
@@ -233,20 +250,21 @@ namespace EStore.Application.Services.RabbitMQ
             try
             {
                 var body = ea.Body.ToArray();
-                var message = JsonSerializer.Deserialize<PushFileMessage>(Encoding.UTF8.GetString(body));
+                var message = JsonSerializer.Deserialize<PushingFileMessage>(Encoding.UTF8.GetString(body));
                 if (message is null)
                 {
-                    _logger.LogError("Invalid message: {Message}", Encoding.UTF8.GetString(body));
+                    _logger.LogError("HandleReceivedMessagePushFileAsync Invalid message: {Message}", Encoding.UTF8.GetString(body));
                     return;
                 }
+
                 await _pushFileConsumerChannel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
 
-                var teleFileEntity = await UploadToTelegramAsync(message.FilePath, message);
+                var teleFileEntity = await UploadFileAsync(message.FilePath, message);
                 if (teleFileEntity.Succeed)
                 {
-                    var file = await UpdateDatabaseAsync(message.FileId, teleFileEntity.Data);
-                    CleanUpPushFile(message.FilePath);
+                    var file = await UpdateFileInformationAsync(message.FileId, teleFileEntity.Data);
                     await _hubContext.Clients.All.ReceiveUploadCompleted(message.FileId.ToString(), file?.ToFileEntityResponse() ?? null);
+                    CleanUpPushFile(message.FilePath);
                 }
                 else
                 {
@@ -256,12 +274,12 @@ namespace EStore.Application.Services.RabbitMQ
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error processing message in push file consumer: {Message}", ex.Message);
+                _logger.LogError("HandleReceivedMessagePushFileAsync: {Message}", ex.Message);
                 await _pushFileConsumerChannel.BasicNackAsync(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
             }
         }
 
-        private async Task<AppResponse<TeleFileEntity>> UploadToTelegramAsync(string mergedFilePath, PushFileMessage message)
+        private async Task<AppResponse<TeleFileEntity>> UploadFileAsync(string mergedFilePath, PushingFileMessage message)
         {
             try
             {
@@ -287,10 +305,13 @@ namespace EStore.Application.Services.RabbitMQ
 
         private static void CleanUpPushFile(string filePath)
         {
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
         }
 
-        private async Task<TeleFileEntity?> UpdateDatabaseAsync(Guid id, TeleFileEntity? teleFileEntity)
+        private async Task<TeleFileEntity?> UpdateFileInformationAsync(Guid id, TeleFileEntity? teleFileEntity)
         {
             if (teleFileEntity is null)
             {

@@ -6,6 +6,8 @@ namespace EStore.Application.Services.RabbitMQ
     {
         Task<bool> ProducerAsync(string queueName, string message);
 
+        Task<bool> ProducerAsync(string queueName, object data);
+
         Task MergeFileConsumerAsync(string message);
 
         Task PushFileConsumerAsync(string message);

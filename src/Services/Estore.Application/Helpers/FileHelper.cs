@@ -78,7 +78,7 @@ public static class FileHelper
     /// </summary>
     /// <param name="fileName">The name of the file including extension</param>
     /// <returns>The determined FileType, or FileType.Unknown if the extension is not recognized</returns>
-    public static FileType DetermineFileType(string fileName)
+    public static FileType DetermineFileType(string? fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
             return FileType.Unknown;
@@ -149,15 +149,15 @@ public static class FileHelper
         return Path.GetExtension(fileName).TrimStart('.');
     }
 
-    public static string GetTempFilePathPart(string userId, string fileId, int chunkIndex = -1){
+    public static string GetTempsFilePath(string userId, string fileId, int chunkIndex = -1){
 
         return chunkIndex != -1 ? 
             Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId, chunkIndex.ToString()) 
             : Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId);
     }
 
-    public static string GetMimeTypeTelegram(string fileName){
-        return  Path.GetExtension(fileName)?.ToLowerInvariant() switch
+    public static string GetMimeTypeTelegram(string? fileName){
+        return Path.GetExtension(fileName)?.ToLowerInvariant() switch
 			{
 				".jpg" or ".jpeg" or ".png" or ".bmp" => "photo",
 				".mp4" => "video",

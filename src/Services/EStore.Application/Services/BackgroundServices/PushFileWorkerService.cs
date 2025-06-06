@@ -4,17 +4,11 @@ using Microsoft.Extensions.Logging;
 
 namespace EStore.Application.Services.BackgroundServices
 {
-    public class PushFileWorkerService : BackgroundService
+    public class PushFileWorkerService(ILogger<PushFileWorkerService> logger, IRabbitMQService rabbitMQService) : BackgroundService
     {
-        private readonly ILogger<PushFileWorkerService> _logger;
-        private readonly IRabbitMQService _rabbitMQService;
-        private const string ConsumerTag = "push_file_worker"; // Unique tag for this consumer
-
-        public PushFileWorkerService(ILogger<PushFileWorkerService> logger, IRabbitMQService rabbitMQService)
-        {
-            _logger = logger;
-            _rabbitMQService = rabbitMQService;
-        }
+        private readonly ILogger<PushFileWorkerService> _logger = logger;
+        private readonly IRabbitMQService _rabbitMQService = rabbitMQService;
+        private const string ConsumerTag = "push_file_worker";
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -26,10 +20,6 @@ namespace EStore.Application.Services.BackgroundServices
             try
             {
                 await _rabbitMQService.PushFileConsumerAsync(ConsumerTag);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation("MergeFileWorkerService execution was canceled.");
             }
             catch (Exception ex)
             {

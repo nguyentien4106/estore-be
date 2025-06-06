@@ -1,5 +1,4 @@
 using EStore.Application.Models.Files;
-using System.Threading.Tasks;
 
 namespace EStore.Application.Hubs
 {

@@ -1,12 +1,10 @@
 using BuildingBlocks.Auth.AuthConfiguration;
 using BuildingBlocks.Auth.Constants;
 using BuildingBlocks.Auth.Models;
-using Carter;
 using EStore.Api.Middlewares.Files;
 using EStore.Application.Constants;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace EStore.Api.Extensions;
 
