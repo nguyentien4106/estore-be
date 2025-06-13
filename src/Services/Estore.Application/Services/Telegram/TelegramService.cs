@@ -47,7 +47,7 @@ public class TelegramService : ITelegramService
             //_client.MTProxyUrl = "https://t.me/proxy?server=87.229.100.252&port=443&secret=eeRighJJvXrFGRMCIMJdCQ";
             _client.OnUpdates += HandleUpdates;
             _client.OnOther += HandleOtherEvents;
-            
+
             var user = await _client.LoginUserIfNeeded();
             _logger.LogInformation("Logged in as {User}", user);
             
@@ -132,9 +132,12 @@ public class TelegramService : ITelegramService
 
     public async Task<AppResponse<Stream>> DownloadFileAsync(TeleFileEntity fileLocation)
     {
+        FileStream fileStream = null;
         try
         {
-            var fileStream = new MemoryStream();
+            var tempFilePath = FileHelper.GetTempFileDownloadPath(fileLocation.UserId, fileLocation.FileName);
+            fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.DeleteOnClose);
+
             var downloadHandler = TelegramFileHandlerFactory.GetDownloadFileHandler(fileLocation.FileType);
             var location = downloadHandler.GetLocation(fileLocation);
             await _hubContext.Clients.All.ReceiveDownloadStarted(fileLocation.Id.ToString(), fileLocation.FileName);
@@ -150,6 +153,7 @@ public class TelegramService : ITelegramService
         }
         catch (Exception ex)
         {
+            fileStream?.Dispose();
             _logger.LogError(ex, "Failed to download file {FileId}", fileLocation.FileId);
             return AppResponse<Stream>.Error(ex.Message);
         }

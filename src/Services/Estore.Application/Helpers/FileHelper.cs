@@ -150,10 +150,26 @@ public static class FileHelper
     }
 
     public static string GetTempsFilePath(string userId, string fileId, int chunkIndex = -1){
+        var filePath = chunkIndex != -1 ? Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId, chunkIndex.ToString()) 
+                                        : Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId);
+        var directoryPath = Path.GetDirectoryName(filePath);
 
-        return chunkIndex != -1 ? 
-            Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId, chunkIndex.ToString()) 
-            : Path.Combine(AppContext.BaseDirectory, "temps", userId, fileId);
+        if (directoryPath != null && !Directory.Exists(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        return filePath;
+    }
+
+    public static string GetTempFileDownloadPath(string userId, string fileName){
+        var filePath = Path.Combine(AppContext.BaseDirectory, "downloads", userId, fileName);
+        if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "downloads", userId)))
+        {
+            Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "downloads", userId));
+        }
+
+        return filePath;
     }
 
     public static string GetMimeTypeTelegram(string? fileName){

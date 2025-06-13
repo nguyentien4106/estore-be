@@ -9,7 +9,7 @@ public class MergeFileWorkerService(ILogger<MergeFileWorkerService> logger, IRab
     private readonly ILogger<MergeFileWorkerService> _logger = logger;
     private readonly IRabbitMQService _rabbitMQService = rabbitMQService;
     private const string ConsumerTag = "merge_file_worker";
-
+    
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("MergeFileWorkerService is starting.");
